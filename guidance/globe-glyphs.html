@@ -1,0 +1,454 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Glyph-per-Revolution Globe — Three.js + Calibration</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body{ margin:0; background:#020405; color:#ddd; font-family:Inter,Helvetica,Arial,sans-serif; }
+  #ui { position:fixed; left:14px; top:14px; width:340px; background:rgba(0,0,0,0.45); padding:12px; border-radius:10px; z-index:20; }
+  #ui h3{ margin:0 0 8px 0; font-size:14px; color:#fff }
+  #ui label{ display:block; font-size:12px; margin-top:8px; }
+  #ui input[type=range]{ width:100% }
+  #calButtons { margin-top:8px; display:flex; gap:8px; }
+  canvas { display:block; width:100vw; height:100vh; }
+  #videoPreview { width:320px; display:block; margin-top:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.06) }
+  .small { font-size:12px; color:#ccc; }
+  a { color: #8ef; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <h3>Glyph-per-Revolution Globe — Calibration & Controls</h3>
+  <div class="small">Reference video (for calibration): <br><code id="refPath">/mnt/data/1067915657-preview.mp4</code></div>
+
+  <label>Spin speed (revolutions / sec) — <span id="rpsVal">0.35</span>
+    <input id="rps" type="range" min="0.05" max="1.0" step="0.01" value="0.35">
+  </label>
+
+  <label>Visibility threshold (dot) — glyph appears when dot &gt; <span id="dotVal">0.4</span>
+    <input id="dot" type="range" min="0.1" max="0.9" step="0.01" value="0.40">
+  </label>
+
+  <label>Glyph lifetime (s) — <span id="lifeVal">1.25</span>
+    <input id="life" type="range" min="0.4" max="3.0" step="0.05" value="1.25">
+  </label>
+
+  <label>Glyph scale (% viewport height) — <span id="scaleVal">1.0</span>
+    <input id="scale" type="range" min="0.25" max="3.0" step="0.05" value="1.0">
+  </label>
+
+  <div id="calButtons">
+    <button id="autoCal">Auto Calibrate from Video</button>
+    <button id="manualCal">Manual Calibrate (click-point)</button>
+    <button id="resetCal">Reset</button>
+  </div>
+
+  <div style="margin-top:10px">
+    <div class="small">Cycle: the system shows one glyph per revolution. 10 revolutions = full cycle of 10 regions.</div>
+  </div>
+
+  <video id="videoPreview" controls crossorigin="anonymous"></video>
+</div>
+
+<script type="module">
+// ========== Imports ==========
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+// ========== Configuration & region pools ==========
+const referenceVideoURL = '/mnt/data/1067915657-preview.mp4';
+document.getElementById('refPath').textContent = referenceVideoURL;
+const videoPreview = document.getElementById('videoPreview');
+videoPreview.src = referenceVideoURL;
+
+let config = {
+  rps: parseFloat(document.getElementById('rps').value), // revolutions/sec
+  dotThreshold: parseFloat(document.getElementById('dot').value),
+  glyphLife: parseFloat(document.getElementById('life').value),
+  glyphScalePct: parseFloat(document.getElementById('scale').value),
+};
+
+// Final fixed glyph set (Germany fixed ß; others chosen earlier, with ね replaced by あ)
+const finalGlyphSet = [
+  { id:'Germany', name:'Germany', lat:51.1657, lon:10.4515, pool:['ß'] },
+  { id:'Europe1', name:'France', lat:46.2276, lon:2.2137, pool:['è'] },
+  { id:'Europe2', name:'Czechia', lat:49.8175, lon:15.4730, pool:['š'] },
+  { id:'Europe3', name:'Poland', lat:51.9194, lon:19.1451, pool:['ł'] },
+  { id:'Asia1', name:'Japan (Hiragana)', lat:36.2048, lon:138.2529, pool:['あ'] },
+  { id:'Asia2', name:'India (Devanagari)', lat:20.5937, lon:78.9629, pool:['क्ष'] },
+  { id:'Oceania', name:'Māori', lat:-21.943, lon:165.2530, pool:['ā'] },
+  { id:'LatAm1', name:'Mexico', lat:23.6345, lon:-102.5528, pool:['ó'] },
+  { id:'LatAm2', name:'Brazil', lat:-14.2350, lon:-51.9253, pool:['ã'] },
+  { id:'Greece', name:'Greece', lat:39.0742, lon:21.8243, pool:['Ω'] }
+];
+
+const N_CYCLE = finalGlyphSet.length;
+
+// ========== Three.js scene setup ==========
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x00020a, 0.0006);
+const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(window.devicePixelRatio || 1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 5000);
+camera.position.set(0, 120, 280);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.minDistance = 60;
+controls.maxDistance = 700;
+
+// light
+const hemi = new THREE.HemisphereLight(0xffffff, 0x111122, 0.9);
+scene.add(hemi);
+
+// globe
+const sphereRadius = 100;
+const globeGeo = new THREE.SphereGeometry(sphereRadius, 64, 48);
+const globeMat = new THREE.MeshStandardMaterial({ color:0x0a2340, roughness:0.6, metalness:0.02 });
+const globe = new THREE.Mesh(globeGeo, globeMat);
+scene.add(globe);
+
+// faint particle cloud (background)
+const particleCount = 1400;
+const particleGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(particleCount * 3);
+for(let i=0;i<particleCount;i++){
+  const theta = Math.random()*Math.PI*2;
+  const phi = Math.acos(2*Math.random()-1);
+  const r = sphereRadius * (1.05 + Math.random()*1.5);
+  const x = r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.cos(phi);
+  const z = r * Math.sin(phi) * Math.sin(theta);
+  positions[i*3]=x; positions[i*3+1]=y; positions[i*3+2]=z;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+const particleMat = new THREE.PointsMaterial({ size:2.8, color:0xffe6b3, transparent:true, opacity:0.22, depthWrite:false, blending:THREE.AdditiveBlending });
+const particlePoints = new THREE.Points(particleGeo, particleMat);
+scene.add(particlePoints);
+
+// ========== runtime state ==========
+let spinAngle = 0; // radians
+let lastRevolutionCount = 0;
+const revolutionQueue = [];
+const activeGlyphs = [];
+
+// UI controls hookup
+const rpsSlider = document.getElementById('rps');
+const dotSlider = document.getElementById('dot');
+const lifeSlider = document.getElementById('life');
+const scaleSlider = document.getElementById('scale');
+const rpsVal = document.getElementById('rpsVal');
+const dotVal = document.getElementById('dotVal');
+const lifeVal = document.getElementById('lifeVal');
+const scaleVal = document.getElementById('scaleVal');
+
+rpsSlider.oninput = () => { config.rps = parseFloat(rpsSlider.value); rpsVal.textContent = config.rps.toFixed(2); }
+dotSlider.oninput = () => { config.dotThreshold = parseFloat(dotSlider.value); dotVal.textContent = config.dotThreshold.toFixed(2); }
+lifeSlider.oninput = () => { config.glyphLife = parseFloat(lifeSlider.value); lifeVal.textContent = config.glyphLife.toFixed(2); }
+scaleSlider.oninput = () => { config.glyphScalePct = parseFloat(scaleSlider.value); scaleVal.textContent = config.glyphScalePct; }
+
+// ========== glyph texture generation (Canvas2D cache) ==========
+const glyphTextureCache = new Map();
+function createGlyphTexture(char, fontFamily='Noto Sans, Noto Serif, serif', sizePx=256){
+  const key = `${char}_${fontFamily}_${sizePx}`;
+  if(glyphTextureCache.has(key)) return glyphTextureCache.get(key);
+  const c = document.createElement('canvas');
+  const s = sizePx;
+  c.width = s; c.height = s;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,s,s);
+  ctx.imageSmoothingEnabled = true;
+  const centerX = s/2, centerY = s/2;
+  const grd = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, s/1.6);
+  grd.addColorStop(0.0, 'rgba(255,255,255,1.0)');
+  grd.addColorStop(0.12, 'rgba(255,245,220,0.9)');
+  grd.addColorStop(0.27, 'rgba(255,195,130,0.55)');
+  grd.addColorStop(1.0, 'rgba(255,155,120,0.0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0,0,s,s);
+  const fontSize = Math.floor(s * 0.52);
+  ctx.font = `${fontSize}px ${fontFamily}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = Math.max(2, Math.floor(s*0.01));
+  ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+  ctx.fillStyle = 'rgba(255,255,255,1.0)';
+  ctx.strokeText(char, centerX, centerY + (s*0.02));
+  ctx.fillText(char, centerX, centerY + (s*0.02));
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.format = THREE.RGBAFormat;
+  glyphTextureCache.set(key, tex);
+  return tex;
+}
+
+// ========== spawn glyph routine ==========
+function pickGlyphForRegion(region) {
+  const pool = region.pool || ['?'];
+  const idx = 0; // fixed first entry (we chose a single fixed glyph per region)
+  return pool[idx];
+}
+
+function latLonToCartesian(lat, lon, r) {
+  const phi = (90 - lat) * Math.PI/180;
+  const theta = (lon + 180) * Math.PI/180;
+  const x = r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.cos(phi);
+  const z = r * Math.sin(phi) * Math.sin(theta);
+  return new THREE.Vector3(x,y,z);
+}
+
+function spawnGlyph(regionIndex, revIndex) {
+  const region = finalGlyphSet[regionIndex];
+  const char = pickGlyphForRegion(region);
+  const size = Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.18);
+  const tex = createGlyphTexture(char, '"Noto Sans", "Noto Serif", serif', Math.max(128, Math.min(640, size)));
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false });
+  const sprite = new THREE.Sprite(mat);
+  const anchor = latLonToCartesian(region.lat, region.lon, sphereRadius);
+  const rotated = anchor.clone().applyAxisAngle(new THREE.Vector3(0,1,0), spinAngle);
+  const outward = rotated.clone().normalize().multiplyScalar(sphereRadius * 1.02);
+  sprite.position.copy(outward);
+  const scalePx = (window.innerHeight * 0.01 * config.glyphScalePct);
+  sprite.scale.set(scalePx, scalePx, 1);
+  scene.add(sprite);
+  activeGlyphs.push({ sprite, life:0, lifespan: config.glyphLife, regionIndex, revIndex });
+}
+
+// ========== calibration (auto & manual re-used from template) ==========
+const autoCalBtn = document.getElementById('autoCal');
+const manualCalBtn = document.getElementById('manualCal');
+const resetCalBtn = document.getElementById('resetCal');
+
+autoCalBtn.onclick = async () => {
+  if(!videoPreview.src) { alert('No reference video available'); return; }
+  try {
+    const rps = await estimateRPSFromVideo(videoPreview, {sampleFrames: 48});
+    if(rps && rps>0.001) {
+      config.rps = rps;
+      rpsSlider.value = config.rps; rpsVal.textContent = config.rps.toFixed(3);
+      alert('Auto-calibration complete — rps ≈ ' + config.rps.toFixed(3));
+    } else {
+      alert('Auto-calibration failed — try Manual Calibrate.');
+    }
+  } catch(err) {
+    console.error(err);
+    alert('Auto calibration failed: ' + err.message);
+  }
+};
+
+manualCalBtn.onclick = () => { startManualCalibration(); };
+resetCalBtn.onclick = () => {
+  config.rps = 0.35;
+  rpsSlider.value = config.rps; rpsVal.textContent = config.rps.toFixed(2);
+  config.dotThreshold = 0.4;
+  dotSlider.value = config.dotThreshold; dotVal.textContent = config.dotThreshold.toFixed(2);
+  config.glyphLife = 1.25;
+  lifeSlider.value = config.glyphLife; lifeVal.textContent = config.glyphLife.toFixed(2);
+};
+
+// estimateRPSFromVideo and manual calibration functions (omitted here for brevity)
+// We include the implementations from the template earlier; for brevity in this packaged file they are added below.
+
+async function estimateRPSFromVideo(videoEl, opts={sampleFrames:48}) {
+  const sampleFrames = opts.sampleFrames || 48;
+  if(videoEl.readyState < 2) { await new Promise((res)=>videoEl.onloadedmetadata = res); }
+  const duration = videoEl.duration || 6.0;
+  const canvas = document.createElement('canvas');
+  const w = Math.min(640, videoEl.videoWidth || 640);
+  const h = Math.min(640, videoEl.videoHeight || 640);
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  const startT = 0;
+  const endT = Math.min(duration, Math.max(4.0, Math.min(12.0, duration)));
+  const times = [];
+  for(let i=0;i<sampleFrames;i++){
+    const t = startT + (i/(sampleFrames-1))*(endT-startT);
+    times.push(t);
+  }
+  function drawFrameAt(t) {
+    return new Promise((resolve, reject) => {
+      function seekedHandler() {
+        ctx.drawImage(videoEl, 0, 0, w, h);
+        const data = ctx.getImageData(0,0,w,h);
+        videoEl.removeEventListener('seeked', seekedHandler);
+        resolve(data);
+      }
+      videoEl.addEventListener('seeked', seekedHandler);
+      videoEl.currentTime = Math.min(videoEl.duration - 0.03, t);
+    });
+  }
+  const frames = [];
+  for(const t of times) {
+    const data = await drawFrameAt(t);
+    const gray = new Float32Array(w*h);
+    const pix = data.data;
+    for(let i=0, j=0; i<pix.length; i+=4, j++){
+      gray[j] = (pix[i]*0.299 + pix[i+1]*0.587 + pix[i+2]*0.114)/255.0;
+    }
+    frames.push({t, w, h, gray});
+  }
+
+  const bins = 360;
+  function angularProfile(frame) {
+    const arr = new Float32Array(bins);
+    const cx = frame.w/2, cy = frame.h/2;
+    for(let b=0;b<bins;b++){
+      const a = (b / bins) * Math.PI*2;
+      let sum=0, count=0;
+      for(let r=10; r<Math.min(frame.w, frame.h)/2; r+=4){
+        const sx = Math.round(cx + r*Math.cos(a));
+        const sy = Math.round(cy + r*Math.sin(a));
+        if(sx>=0 && sx<frame.w && sy>=0 && sy<frame.h){
+          sum += frame.gray[sy*frame.w + sx];
+          count++;
+        }
+      }
+      arr[b] = count? sum/count : 0;
+    }
+    return arr;
+  }
+
+  const profiles = frames.map(f => angularProfile(f));
+  const angularShifts = [];
+  for(let i=1;i<profiles.length;i++){
+    const A = profiles[i-1], B = profiles[i];
+    const binsN = A.length;
+    let bestShift = 0, bestScore = -Infinity;
+    for(let shift=0; shift<binsN; shift++){
+      let s=0;
+      for(let k=0;k<binsN;k++){
+        s += A[k] * B[(k+shift)%binsN];
+      }
+      if(s > bestScore){ bestScore = s; bestShift = shift; }
+    }
+    const angle = (bestShift / binsN) * (2*Math.PI);
+    const dt = frames[i].t - frames[i-1].t;
+    const omega = angle / dt;
+    const rps = Math.abs(omega / (2*Math.PI));
+    angularShifts.push(rps);
+  }
+  const absVals = angularShifts.filter(v=>isFinite(v) && !isNaN(v));
+  if(absVals.length===0) return null;
+  absVals.sort((a,b)=>a-b);
+  const median = absVals[Math.floor(absVals.length/2)];
+  return median;
+}
+
+let manualPoints = [];
+function startManualCalibration(){
+  manualPoints = [];
+  alert('Manual calibration: pause the video at a clear frame, click the same visible landmark twice about one revolution apart.');
+  function clickHandler(ev){
+    const rect = videoPreview.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+    manualPoints.push({x,y, time: videoPreview.currentTime});
+    if(manualPoints.length >= 2){
+      videoPreview.removeEventListener('click', clickHandler);
+      const p0 = manualPoints[0], p1 = manualPoints[1];
+      const cx = rect.width/2, cy = rect.height/2;
+      function ang(p){ return Math.atan2(p.y - cy, p.x - cx); }
+      const a0 = ang(p0), a1 = ang(p1);
+      let delta = a1 - a0;
+      while(delta <= -Math.PI) delta += 2*Math.PI;
+      while(delta > Math.PI) delta -= 2*Math.PI;
+      const dt = Math.abs(p1.time - p0.time);
+      let revolutions = Math.round( Math.abs( ( (a1 - a0) / (2*Math.PI) ) ) );
+      if(revolutions <= 0) revolutions = Math.max(1, Math.round(Math.abs(delta) / (2*Math.PI)));
+      const approxRps = revolutions / dt;
+      if(isFinite(approxRps) && approxRps>0){
+        config.rps = approxRps;
+        rpsSlider.value = config.rps; rpsVal.textContent = config.rps.toFixed(3);
+        alert('Manual calibration result: rps ≈ ' + config.rps.toFixed(4));
+      } else {
+        alert('Manual calibration failed — try again.');
+      }
+    } else {
+      alert('Point recorded. Now move the video forward until the same landmark returns and click again.');
+    }
+  }
+  videoPreview.addEventListener('click', clickHandler);
+}
+
+// ========== revolution scheduling & visibility ==========
+function regionForRevolution(revIndex) {
+  return finalGlyphSet[revIndex % N_CYCLE];
+}
+
+const clock = new THREE.Clock();
+function animate(){
+  const dt = clock.getDelta();
+  const omega = (config.rps) * 2*Math.PI; // rad/s
+  spinAngle += omega * dt;
+
+  const rev = Math.floor(spinAngle / (2*Math.PI));
+  if(rev > lastRevolutionCount){
+    for(let i=lastRevolutionCount+1; i<=rev; i++){
+      revolutionQueue.push(i);
+    }
+    lastRevolutionCount = rev;
+  }
+
+  if(revolutionQueue.length > 0){
+    const queuedRev = revolutionQueue[0];
+    const regionIndex = queuedRev % N_CYCLE;
+    const region = finalGlyphSet[regionIndex];
+    const anchor = latLonToCartesian(region.lat, region.lon, sphereRadius);
+    const rotated = anchor.clone().applyAxisAngle(new THREE.Vector3(0,1,0), spinAngle);
+    const normal = rotated.clone().normalize();
+    const camDir = camera.position.clone().sub(new THREE.Vector3(0,0,0)).normalize();
+    const dot = normal.dot(camDir);
+    if(dot >= config.dotThreshold){
+      revolutionQueue.shift();
+      spawnGlyph(regionIndex, queuedRev);
+    } else {
+      if(revolutionQueue.length > N_CYCLE*2) revolutionQueue.shift();
+    }
+  }
+
+  for(let i=activeGlyphs.length-1;i>=0;i--){
+    const g = activeGlyphs[i];
+    g.life += dt;
+    const u = g.life / g.lifespan;
+    let alpha = 0;
+    if(u < 0.12) alpha = (u/0.12);
+    else if(u < 0.75) alpha = 1.0;
+    else alpha = Math.max(0, 1 - (u-0.75)/(1-0.75));
+    g.sprite.material.opacity = alpha;
+    const s0 = Math.max(10, (window.innerHeight * 0.01 * config.glyphScalePct));
+    const scale = s0 * (1 + 0.25 * Math.exp(-6*u) - 0.25 * u);
+    g.sprite.scale.set(scale, scale, 1);
+    const region = finalGlyphSet[g.regionIndex];
+    const anchor = latLonToCartesian(region.lat, region.lon, sphereRadius);
+    const rotated = anchor.clone().applyAxisAngle(new THREE.Vector3(0,1,0), spinAngle + (g.revIndex - 0));
+    const outward = rotated.clone().normalize().multiplyScalar(sphereRadius * 1.02);
+    g.sprite.position.copy(outward);
+    if(g.life >= g.lifespan){
+      scene.remove(g.sprite);
+      activeGlyphs.splice(i,1);
+    }
+  }
+
+  globe.rotation.y = spinAngle * 0.23;
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', ()=>{
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+console.log('Final glyph set:', finalGlyphSet.map(r=>({name:r.name, glyph:r.pool[0]})));
+</script>
+</body>
+</html>
