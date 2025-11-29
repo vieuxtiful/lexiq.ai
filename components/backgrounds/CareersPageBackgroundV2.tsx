@@ -1,14 +1,16 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Points, PointMaterial, Text } from "@react-three/drei";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Points, PointMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { createNoise4D } from "simplex-noise";
 import * as THREE from "three";
 
-import { DottedWorldMapEnhanced } from "./DottedWorldMapEnhanced";
+import earthColorImage from "@/guidance/earth-blue-marble.jpg";
+import earthBumpImage from "@/guidance/earth-topology.png";
+import cloudsImage from "@/guidance/clouds.png";
 
+//Color Palette/Color CSS for the Careers Background//
 const gradientColors = [
   "#0065ab",
   "#0067af",
@@ -95,32 +97,100 @@ function interpolateColor(t: number) {
 
   return leftRgb.map((channel, index) => channel + (rightRgb[index] - channel) * localT) as [number, number, number];
 }
+// To adjust particle ("star") feather//
+type FeatheredPointMaterialProps = {
+  size?: number;
+  featherStrength?: number;
+};
+
+function FeatheredPointMaterial({ size = 0.012, featherStrength = 0.7 }: FeatheredPointMaterialProps) {
+  const featherTexture = useMemo(() => {
+    if (typeof document === "undefined") return null;
+
+    const dimension = 128;
+    const canvas = document.createElement("canvas");
+    canvas.width = dimension;
+    canvas.height = dimension;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const center = dimension / 2;
+    const radius = dimension / 0.1;
+    const softness = THREE.MathUtils.clamp(featherStrength, 0, 1);
+    const innerStop = THREE.MathUtils.lerp(0.05, 0.35, 1 - softness);
+    const outerStop = THREE.MathUtils.lerp(0.55, 0.95, softness);
+
+    const gradient = ctx.createRadialGradient(center, center, 0, center, center, radius);
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(innerStop, "rgba(255,255,255,0.6)");
+    gradient.addColorStop(outerStop, "rgba(255,255,255,0.15)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.clearRect(0, 0, dimension, dimension);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, dimension, dimension);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.magFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
+  }, [featherStrength]);
+
+  useEffect(() => {
+    return () => {
+      featherTexture?.dispose();
+    };
+  }, [featherTexture]);
+
+  return (
+    <PointMaterial
+      transparent
+      size={size}
+      sizeAttenuation
+      depthWrite={false}
+      vertexColors
+      toneMapped={false}
+      map={featherTexture ?? undefined}
+      alphaMap={featherTexture ?? undefined}
+    />
+  );
+}
 
 function CareersParticles() {
-  const noise4D = useMemo(() => createNoise4D(), []);
   const ref = useRef<THREE.Points>(null);
 
-  const { positions, colors } = useMemo(() => {
-    const count = 6500;
-    const positions = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
+  const { positions, baseColors, flickerPhases, dynamicColors } = useMemo(() => {
+    const count = 1300;
+    const positions = new Float32Array(count * 5);
+    const baseColors = new Float32Array(count * 5);
+    const flickerPhases = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
       const index = i * 3;
-      positions[index] = (Math.random() - 0.5) * 4.2;
+      positions[index] = (Math.random() - 0.5) * 5.9; //Adjust "horizontal range" for stars on screen//
       positions[index + 1] = (Math.random() - 0.5) * 2.3;
       positions[index + 2] = (Math.random() - 0.5) * 1.5;
 
       const [r, g, b] = interpolateColor(i / count);
-      colors[index] = r;
-      colors[index + 1] = g;
-      colors[index + 2] = b;
+      baseColors[index] = r;
+      baseColors[index + 1] = g;
+      baseColors[index + 2] = b;
+
+      flickerPhases[i] = Math.random() * Math.PI * 2;
     }
 
-    return { positions, colors };
+    const dynamicColors = baseColors.slice();
+
+    return { positions, baseColors, flickerPhases, dynamicColors };
   }, []);
 
-  const colorAttribute = useMemo(() => new THREE.Float32BufferAttribute(colors, 3), [colors]);
+  const baseColorsRef = useRef(baseColors);
+  const flickerPhasesRef = useRef(flickerPhases);
+
+  const colorAttribute = useMemo(() => new THREE.Float32BufferAttribute(dynamicColors, 3), [dynamicColors]);
 
   useEffect(() => {
     if (ref.current) {
@@ -133,70 +203,164 @@ function CareersParticles() {
     const geometry = ref.current?.geometry;
     if (!geometry) return;
 
-    const positionsArr = geometry.attributes.position.array as Float32Array;
-
-    for (let i = 0; i < positionsArr.length; i += 3) {
-      const x = positionsArr[i];
-      const y = positionsArr[i + 1];
-      const z = positionsArr[i + 2];
-
-      const bandPhase = x * 0.32 - y * 0.19 + Math.sin(z * 0.33 + t * 0.35) * 0.2 - t * 0.45;
-      const crest = Math.sin(bandPhase);
-
-      const gradientX = -Math.cos(bandPhase) * 0.28;
-      const gradientY = Math.cos(bandPhase) * 0.18;
-
-      let dx = gradientX * 0.0007 * (1 + crest * 0.4);
-      let dy = gradientY * 0.0007 * (1 + crest * 0.4);
-      let dz = 0;
-
-      const swirl = noise4D(x * 0.3, y * 0.3, z * 0.3, t * 0.2);
-      const swirlAngle = swirl * Math.PI * 2;
-      const swirlStrength = 0.0019 * (1 + crest * 0.3);
-      dx += Math.cos(swirlAngle) * swirlStrength;
-      dy += Math.sin(swirlAngle) * swirlStrength;
-      dz += Math.sin(swirlAngle * 0.6) * swirlStrength * 0.4;
-
-      const depthTarget = Math.cos(bandPhase * 0.5) * 0.6;
-      dz += (depthTarget - z) * 0.0007;
-
-      const driftAngle = noise4D(x * 0.14, y * 0.14, z * 0.14, t * 0.1) * Math.PI * 2;
-      dx += Math.cos(driftAngle) * 0.00045;
-      dy += Math.sin(driftAngle) * 0.00045;
-
-      const maxStep = 0.018;
-      const vNorm = Math.sqrt(dx * dx + dy * dy + dz * dz) + 1e-6;
-      const scale = Math.min(1, maxStep / vNorm);
-      dx *= scale;
-      dy *= scale;
-      dz *= scale;
-
-      positionsArr[i] += dx;
-      positionsArr[i + 1] += dy;
-      positionsArr[i + 2] += dz;
-
-      if (positionsArr[i] > 4.1) positionsArr[i] = -4.1;
-      if (positionsArr[i] < -4.1) positionsArr[i] = 4.1;
-      if (positionsArr[i + 1] > 2.1) positionsArr[i + 1] = -2.1;
-      if (positionsArr[i + 1] < -2.1) positionsArr[i + 1] = 2.1;
-      if (positionsArr[i + 2] > 1.1) positionsArr[i + 2] = -1.1;
-      if (positionsArr[i + 2] < -1.1) positionsArr[i + 2] = 1.1;
+    const colorAttr = geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
+    if (!colorAttr) {
+      return;
     }
 
-    geometry.attributes.position.needsUpdate = true;
+    const colorsArr = colorAttr.array as Float32Array;
+    const baseArr = baseColorsRef.current;
+    const phases = flickerPhasesRef.current;
+
+    for (let i = 0; i < phases.length; i++) {
+      const idx = i * 3; // Instance //
+      const flicker = 0.19 + Math.sin(t * 1.82 + phases[i]) * 0.282; //Adjust Flicker arguments//
+      colorsArr[idx] = baseArr[idx] * flicker;
+      colorsArr[idx + 1] = baseArr[idx + 1] * flicker;
+      colorsArr[idx + 2] = baseArr[idx + 2] * flicker;
+    }
+
+    colorAttr.needsUpdate = true;
   });
 
   return (
     <Points ref={ref} positions={positions} stride={3}>
-      <PointMaterial
-        transparent
-        size={0.012}
-        sizeAttenuation
-        depthWrite={false}
-        vertexColors
-        toneMapped={false}
-      />
+      <FeatheredPointMaterial featherStrength={0.72} size={0.012} />
     </Points>
+  );
+}
+
+type RotatingGlobeProps = {
+  groupPosition?: [number, number, number];
+  globeScale?: number;
+  atmosphereColor?: THREE.ColorRepresentation;
+  cloudRotationSpeed?: number;
+  eclipseColor?: THREE.ColorRepresentation;
+  eclipseCoverage?: number;
+  eclipseSoftness?: number;
+  eclipsePosition?: [number, number, number];
+  eclipseOpacity?: number;
+};
+
+function RotatingGlobe({
+  groupPosition = [1.73, 1.16, 0],
+  globeScale = 0.62,
+  atmosphereColor = "#00025aff",
+  cloudRotationSpeed,
+  eclipseColor = "#01030a",
+  eclipseCoverage = 0.2,
+  eclipseSoftness = 0.32,
+  eclipsePosition = [-9.4, 1.3, 0.2],
+  eclipseOpacity = 9.9,
+}: RotatingGlobeProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const cloudRef = useRef<THREE.Mesh>(null);
+
+  const textures = useLoader(THREE.TextureLoader, [earthColorImage.src, earthBumpImage.src, cloudsImage.src]);
+  const [earthTexture, bumpTexture, cloudTexture] = textures;
+  earthTexture.colorSpace = THREE.SRGBColorSpace;
+  cloudTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const computedCloudSpeed = typeof cloudRotationSpeed === "number" ? cloudRotationSpeed : THREE.MathUtils.degToRad(-0.0025);
+
+  const sphereArgs = useMemo(() => [1.3, 128, 128] as const, []);
+  const cloudArgs = useMemo(() => [1.239 * (1 + 0.05), 96, 96] as const, []);
+  const atmosphereArgs = useMemo(() => [1.0169 * 1.28116, 64, 64] as const, []);
+
+  const eclipseMaterial = useMemo(() => {
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uColor: { value: new THREE.Color(eclipseColor) },
+        uDirection: { value: new THREE.Vector3(0, -1, 0) },
+        uCoverage: { value: 0 },
+        uSoftness: { value: 0.3 },
+        uOpacity: { value: 1 },
+      },
+      vertexShader: `varying vec3 vWorldNormal; void main() { vWorldNormal = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `varying vec3 vWorldNormal; uniform vec3 uColor; uniform vec3 uDirection; uniform float uCoverage; uniform float uSoftness; uniform float uOpacity; void main() { float coverage = clamp(uCoverage, 0.0, 1.0); if (coverage <= 0.0001) { discard; } vec3 dir = normalize(uDirection); float shadeDot = clamp(dot(normalize(vWorldNormal), dir), -1.0, 1.0); float normalizedAngle = acos(shadeDot) / 3.14159265; float softness = clamp(uSoftness, 0.0001, 1.0); float halfSoft = softness * 0.5; float edge = clamp(coverage, 0.0, 1.0); float falloffStart = max(edge - halfSoft, 0.0); float falloffEnd = min(edge + halfSoft, 1.0); float mask = 1.0 - smoothstep(falloffStart, falloffEnd, normalizedAngle); float alpha = mask * coverage * clamp(uOpacity, 0.0, 1.0); if (alpha <= 0.0001) { discard; } gl_FragColor = vec4(uColor, alpha); }`,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+      side: THREE.FrontSide,
+      blending: THREE.CustomBlending,
+      blendSrc: THREE.SrcAlphaFactor,
+      blendDst: THREE.OneMinusSrcAlphaFactor,
+      blendEquation: THREE.AddEquation,
+    });
+    material.premultipliedAlpha = true;
+    return material;
+  }, []);
+
+  useEffect(() => {
+    const direction = new THREE.Vector3().fromArray(eclipsePosition);
+    if (direction.lengthSq() < 1e-6) {
+      direction.set(0, -1, 0);
+    }
+    direction.normalize();
+
+    const coverageValue = THREE.MathUtils.clamp(eclipseCoverage, 0, 1);
+    const softnessValue = THREE.MathUtils.clamp(eclipseSoftness, 0.0001, 1);
+
+    eclipseMaterial.uniforms.uColor.value.set(eclipseColor as THREE.ColorRepresentation);
+    eclipseMaterial.uniforms.uDirection.value.copy(direction);
+    eclipseMaterial.uniforms.uCoverage.value = coverageValue;
+    eclipseMaterial.uniforms.uSoftness.value = softnessValue;
+    eclipseMaterial.uniforms.uOpacity.value = THREE.MathUtils.clamp(eclipseOpacity, 0, 1);
+  }, [eclipseMaterial, eclipseColor, eclipseCoverage, eclipsePosition, eclipseSoftness, eclipseOpacity]);
+
+  useEffect(() => () => {
+    eclipseMaterial.dispose();
+  }, [eclipseMaterial]);
+
+  useFrame((_, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += delta * 0.0065; //standard rotation speed: 0.0065//
+    }
+
+    if (cloudRef.current) {
+      cloudRef.current.rotation.y += computedCloudSpeed;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={groupPosition} scale={globeScale}>
+      <mesh castShadow receiveShadow>
+        <sphereGeometry args={sphereArgs} />
+        <meshPhongMaterial
+          map={earthTexture}
+          bumpMap={bumpTexture}
+          bumpScale={0.2}
+          shininess={97}
+          emissive="#f7faffff"
+          emissiveIntensity={4}
+          specular={new THREE.Color("#ffffffff")}
+        />
+      </mesh>
+
+      <mesh ref={cloudRef}>
+        <sphereGeometry args={cloudArgs} />
+        <meshPhongMaterial map={cloudTexture} transparent opacity={0.8} depthWrite={false} />
+      </mesh>
+
+      <mesh>
+        <sphereGeometry args={atmosphereArgs} />
+        <meshBasicMaterial
+          color={atmosphereColor}
+          transparent
+          opacity={0.004} //standard: 0.89// //Globe Outline//
+          side={THREE.BackSide}
+          blending={THREE.NormalBlending}
+        />
+      </mesh>
+      {eclipseCoverage > 0.001 && (
+        <mesh scale={[1.002, 1.002, 1.002]}>
+          <sphereGeometry args={sphereArgs} />
+          <primitive object={eclipseMaterial} attach="material" />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -220,11 +384,19 @@ export function CareersPageBackgroundV2() {
         >
           <color attach="background" args={["#01030a"]} />
           <ambientLight intensity={0.18} />
-          <directionalLight position={[-2, 2.5, 2]} intensity={1.2} color="#38bdf8" />
-
-          <DottedWorldMapEnhanced radius={0.85} dotDensity={2.5} dotSize={0.012} autoRotate rotationSpeed={0.45} position={[0.73, 0.16, 0]} showGlow />
+          <directionalLight position={[-3.2, 0.1, 6.9]} intensity={0.012} color="#38bdf8" /> //position={[-2.1, 0.2, 7]}//
           <CareersParticles />
-
+          <RotatingGlobe
+            groupPosition={[-0.23, -0.29, 1.33]} // z = 1.7//
+            globeScale={0.6}
+            atmosphereColor="#000e31ff"
+            cloudRotationSpeed={THREE.MathUtils.degToRad(0.00012)} //Cloud Rotation Speed//
+            eclipseColor="#020617"
+            eclipsePosition={[-0.1, -1.0, 0.2]} // set x/y/z to steer the eclipse
+            eclipseCoverage={0.15} // 0-1 range for obscured area
+            eclipseSoftness={0.35}
+            eclipseOpacity={1.0}
+          />
           <EffectComposer multisampling={4}>
             <Bloom intensity={1.5} radius={0.95} luminanceThreshold={0.08} luminanceSmoothing={0.45} />
           </EffectComposer>

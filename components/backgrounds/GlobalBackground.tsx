@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { BackgroundV1 } from "./BackgroundV1";
-import { HyperDigitalCareersBackground } from "./hyperdigital/HyperDigitalCareersBackground";
+import { CareersPageBackgroundV2 } from "./CareersPageBackgroundV2";
 
 const CAREERS_ROUTE_PREFIX = "/careers";
 
@@ -12,7 +12,7 @@ export function GlobalBackground() {
   const isCareersRoute = pathname?.startsWith(CAREERS_ROUTE_PREFIX);
 
   if (isCareersRoute) {
-    return <HyperDigitalCareersBackground />;
+    return <CareersPageBackgroundV2 />;
   }
 
   return <BackgroundV1 />;

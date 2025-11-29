@@ -1,16 +1,23 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { EffectComposer, Bloom, ChromaticAberration } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { EffectComposer, Bloom, ChromaticAberration, DepthOfField, Glitch, GodRays } from "@react-three/postprocessing";
+import { BlendFunction, GlitchMode } from "postprocessing";
 import * as THREE from "three";
 
-import { ParticleWorldMap } from "./ParticleWorldMap";
 import { FloatingUIElements } from "./FloatingUIElements";
 import { ParallaxGrid } from "./ParallaxGrid";
 import { VolumetricLights } from "./VolumetricLights";
 import { CameraController } from "./CameraController";
+
+const originalComputeBoundingSphere = THREE.BufferGeometry.prototype.computeBoundingSphere;
+THREE.BufferGeometry.prototype.computeBoundingSphere = function computeBoundingSphereShim() {
+  originalComputeBoundingSphere.call(this);
+  if (!this.boundingSphere || Number.isNaN(this.boundingSphere.radius)) {
+    console.warn("NaN bounding sphere on geometry:", this);
+  }
+};
 
 interface HyperDigitalCareersBackgroundProps {
   enableCameraAnimation?: boolean;
@@ -25,6 +32,8 @@ export function HyperDigitalCareersBackground({
   particleDensity = 3.5,
   uiElementCount = 12,
 }: HyperDigitalCareersBackgroundProps) {
+  const sunRef = useRef<THREE.Mesh>(null!);
+
   return (
     <div
       className="pointer-events-none fixed inset-0 -z-10"
@@ -62,11 +71,32 @@ export function HyperDigitalCareersBackground({
 
           <ParallaxGrid size={20} divisions={40} position={[0, -2, -5]} color="#00E5FF" />
 
-          <ParticleWorldMap dotDensity={particleDensity} position={[0, 0, 0]} scale={2.5} />
           <FloatingUIElements count={uiElementCount} />
 
+          <mesh ref={sunRef} position={[-4, 3.5, -12]}>
+            <sphereGeometry args={[1.8, 32, 32]} />
+            <meshBasicMaterial color="#00E5FF" transparent opacity={0.6} toneMapped={false} />
+          </mesh>
+
           <EffectComposer multisampling={4}>
-            <Bloom intensity={1.8} luminanceThreshold={0.2} luminanceSmoothing={0.9} radius={0.85} mipmapBlur />
+            <Bloom intensity={2.35} luminanceThreshold={0.18} luminanceSmoothing={0.75} radius={1.15} mipmapBlur />
+            <GodRays
+              sun={sunRef}
+              samples={60}
+              density={0.92}
+              decay={0.96}
+              exposure={0.7}
+              clampMax={1}
+              weight={0.5}
+            />
+            <DepthOfField focusDistance={0.015} focalLength={0.02} bokehScale={2.5} height={720} />
+            <Glitch
+              delay={new THREE.Vector2(1.5, 3.5)}
+              duration={new THREE.Vector2(0.15, 0.35)}
+              strength={new THREE.Vector2(0.02, 0.08)}
+              mode={GlitchMode.CONSTANT_MILD}
+              ratio={0.9}
+            />
             <ChromaticAberration
               blendFunction={BlendFunction.NORMAL}
               offset={new THREE.Vector2(0.001, 0.001)}

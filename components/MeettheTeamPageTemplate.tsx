@@ -1,13 +1,13 @@
 import { SectionedPage } from "./SectionedPage";
 
-const hero = {
+export const meetTheTeamHero = {
   kicker: "The Development Team",
   title: "A collective of linguists, engineers, and SMEs",
   description:
     "We bring together in-demand linguists, researchers, and engineers to break the black box for localization workflow evolution.",
   primary: { label: "Connect with partnerships", href: "/contact" },
   secondary: { label: "See open roles", href: "/careers" },
-};
+} as const;
 
 const stats = [
   { label: "Core team members", value: "3" },
@@ -86,7 +86,7 @@ export function MeettheTeamPageTemplate() {
   return (
     <SectionedPage
       current="team"
-      hero={hero}
+      hero={meetTheTeamHero}
       stats={stats}
       capabilities={capabilities}
       experience={experience}

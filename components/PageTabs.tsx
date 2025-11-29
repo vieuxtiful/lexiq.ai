@@ -4,6 +4,7 @@ export const tabs = [
   { id: "home", label: "Main", href: "/" },
   { id: "about", label: "About", href: "/about" },
   { id: "team", label: "Meet the Team", href: "/meet-the-team" },
+  { id: "meta", label: "META Lab", href: "/meta-lab" },
   { id: "careers", label: "Careers", href: "/careers" },
   { id: "contact", label: "Contact", href: "/contact" },
 ] as const;

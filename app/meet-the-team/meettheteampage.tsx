@@ -1,5 +1,1 @@
-import { MeettheTeamPageTemplate } from "@/components/MeettheTeamPageTemplate";
-
-export default function MeetTheTeamPage() {
-  return <MeettheTeamPageTemplate />;
-}
+// File intentionally removed. Implementation moved into page.tsx.
