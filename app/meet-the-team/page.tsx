@@ -259,7 +259,7 @@ export default function MeetTheTeamPage() {
               width={520}
               height={180}
               priority
-              className="h-auto w-[min(420px,70vw)] object-contain"
+              className="h-auto w-[min(420px,70vw)] object-contain translate-y-8 sm:translate-y-12"
             />
             <div
               className="pointer-events-none absolute inset-0 rounded-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -278,11 +278,20 @@ export default function MeetTheTeamPage() {
           </p>
 
           <div
-            className={`text-xs font-semibold tracking-[0.4em] text-gray-500 transition-opacity duration-500 ${
-              showScrollHint ? "opacity-100" : "opacity-0"
+            className={`slot-hint text-xs font-semibold tracking-[0.4em] text-gray-500 transition-opacity duration-500 ${
+              showScrollHint ? "opacity-100" : "opacity-40"
             }`}
           >
-            「Scroll for more ↓」
+            <span
+              className={`slot-hint__text ${
+                showScrollHint ? "slot-hint__text--visible" : "slot-hint__text--hidden"
+              }`}
+            >
+              Scroll for more
+              <span className="slot-hint__arrow" aria-hidden>
+                ↓
+              </span>
+            </span>
           </div>
         </div>
 

@@ -169,12 +169,60 @@ body {
   opacity: 1;
 }
 
+/* Mirror slot baseline exit used on Scroll hint for statue hover labels */
+.hover-text-baseline {
+  overflow: hidden;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding-bottom: 0.25rem;
+}
+
+.hover-text-baseline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15rem;
+  height: 0.15rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.25));
+  border-radius: 999px;
+  opacity: 0.4;
+}
+
+.hover-text-baseline__text {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform 0.75s cubic-bezier(0.25, 0.9, 0.35, 1);
+}
+
+.group:hover .hover-text-baseline__text {
+  transform: translateY(0);
+  transition: none;
+}
+
 @keyframes typewriterBlink {
   0%,
   50% {
     opacity: 1;
   }
   51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes caretGlowFadeShort {
+  0% {
+    opacity: 1;
+  }
+  8% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
   100% {
     opacity: 0;
   }
@@ -197,11 +245,123 @@ body {
 
 .blinking-caret {
   display: inline-block;
-  width: 2px;
+  width: 3px;
   height: 1em;
   margin-left: 0.25rem;
   background: #000;
-  animation: typewriterBlink 1s step-end infinite;
+  animation: typewriterBlink 0.85s step-end infinite;
+}
+
+.name-caret {
+  width: 12px;
+}
+
+.caret-loop {
+  animation: caretBlinkTwice 0.5s linear 1 forwards, caretGlowFade 1.95s ease 0.5s infinite;
+  animation-fill-mode: forwards, none;
+}
+
+.caret-loop-short {
+  animation: caretBlinkTwice 0.5s linear 1 forwards, caretGlowFadeShort 1.4625s ease 0.5s infinite;
+  animation-fill-mode: forwards, none;
+}
+
+.caret-once {
+  animation: caretBlinkTwice 0.5s linear 1 forwards;
+}
+
+.caret-static {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes caretBlinkTwice {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes caretGlowFade {
+  0% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.slot-hint {
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-bottom: 0.15rem;
+}
+
+.slot-hint::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15rem;
+  height: 0.15rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.25));
+  border-radius: 999px;
+  opacity: 0.4;
+}
+
+.slot-hint__text {
+  display: inline-block;
+  transform: translateY(100%);
+  transition: transform 0.8s cubic-bezier(0.25, 0.9, 0.35, 1);
+}
+
+.slot-hint__text--visible {
+  transform: translateY(0);
+}
+
+.slot-hint__text--hidden {
+  transform: translateY(120%);
+}
+
+.slot-hint__arrow {
+  display: inline-block;
+  margin-left: 0.35rem;
+  animation: slotHintArrowHop 1.5s ease-in-out infinite;
+}
+
+@keyframes slotHintArrowHop {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-0.25rem);
+  }
+  80% {
+    transform: translateY(0.15rem);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .bio-fade-in {

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="_レイヤー_1" data-name="レイヤー 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5419.75 1433.64">
+<svg id="META_Lab_-_Logo" data-name="META Lab - Logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5419.75 1433.64">
   <defs>
     <style>
-      .cls-1, .cls-2, .cls-3 {
-        fill: #040000;
+      .cls-1 {
+        stroke: #fff;
+        stroke-miterlimit: 10;
       }
 
-      .cls-4 {
+      .cls-1, .cls-2, .cls-3, .cls-4 {
         fill: #2a2a2b;
       }
 
-      .cls-4, .cls-5, .cls-6, .cls-3 {
+      .cls-2, .cls-5, .cls-6, .cls-4 {
         isolation: isolate;
       }
 
-      .cls-4, .cls-6 {
+      .cls-2, .cls-6 {
         font-family: CenturyGothic, 'Century Gothic';
         font-size: 1189.83px;
       }
@@ -27,12 +28,11 @@
         fill: #215187;
       }
 
-      .cls-2 {
-        stroke: #fff;
-        stroke-miterlimit: 10;
+      .cls-8 {
+        fill: #292a2b;
       }
 
-      .cls-3 {
+      .cls-4 {
         font-family: CenturyGothic-Bold, 'Century Gothic';
         font-size: 218.14px;
         font-weight: 700;
@@ -43,25 +43,25 @@
     <text class="cls-6" transform="translate(1103.87 1022.06) scale(.84 1)"><tspan x="0" y="0">META</tspan></text>
   </g>
   <g class="cls-5">
-    <text class="cls-4" transform="translate(3855.16 1022.06) scale(.84 1)"><tspan x="0" y="0">lab</tspan></text>
+    <text class="cls-2" transform="translate(3855.16 1022.06) scale(.84 1)"><tspan x="0" y="0">lab</tspan></text>
   </g>
   <g class="cls-5">
-    <text class="cls-3" transform="translate(1283.14 1291.94) scale(.91 1)"><tspan x="0" y="0">EVALUATION</tspan></text>
+    <text class="cls-4" transform="translate(1283.14 1291.94) scale(.91 1)"><tspan x="0" y="0">EVALUATION</tspan></text>
   </g>
   <g class="cls-5">
-    <text class="cls-3" transform="translate(2770.83 1291.94) scale(.91 1)"><tspan x="0" y="0">TRAINING</tspan></text>
+    <text class="cls-4" transform="translate(2770.83 1291.94) scale(.91 1)"><tspan x="0" y="0">TRAINING</tspan></text>
   </g>
   <g class="cls-5">
-    <text class="cls-3" transform="translate(3953.72 1291.94) scale(.91 1)"><tspan x="0" y="0">ANALYSIS</tspan></text>
+    <text class="cls-4" transform="translate(3953.72 1291.94) scale(.91 1)"><tspan x="0" y="0">ANALYSIS</tspan></text>
   </g>
-  <rect class="cls-1" x="261.87" y="908.42" width="189.38" height="16.66"/>
-  <rect class="cls-1" x="926.16" y="1051.99" width="16.66" height="189.38" transform="translate(-537.12 996.64) rotate(-45)"/>
-  <rect class="cls-1" x="611.58" y="568.6" width="189.38" height="16.66" transform="translate(1283.2 -129.34) rotate(90)"/>
-  <circle class="cls-2" cx="706.27" cy="916.75" r="255.02"/>
-  <circle class="cls-2" cx="1086" cy="1302.46" r="130.68"/>
+  <rect class="cls-3" x="261.87" y="908.42" width="189.38" height="16.66"/>
+  <rect class="cls-3" x="926.16" y="1051.99" width="16.66" height="189.38" transform="translate(-537.12 996.64) rotate(-45)"/>
+  <rect class="cls-3" x="611.58" y="568.6" width="189.38" height="16.66" transform="translate(1283.2 -129.34) rotate(90)"/>
+  <circle class="cls-1" cx="706.27" cy="916.75" r="255.02"/>
+  <circle class="cls-1" cx="1086" cy="1302.46" r="130.68"/>
   <g>
-    <path class="cls-1" d="M706.27,486.11c-71.78,0-130.18-58.4-130.18-130.18s58.4-130.18,130.18-130.18,130.18,58.4,130.18,130.18-58.4,130.18-130.18,130.18Z"/>
+    <path class="cls-8" d="M706.27,486.11c-71.78,0-130.18-58.4-130.18-130.18s58.4-130.18,130.18-130.18,130.18,58.4,130.18,130.18-58.4,130.18-130.18,130.18Z"/>
     <path class="cls-7" d="M706.27,226.24c34.64,0,67.21,13.49,91.7,37.98,24.49,24.49,37.98,57.06,37.98,91.7s-13.49,67.21-37.98,91.7c-24.49,24.49-57.06,37.98-91.7,37.98s-67.21-13.49-91.7-37.98c-24.49-24.49-37.98-57.06-37.98-91.7s13.49-67.21,37.98-91.7c24.49-24.49,57.06-37.98,91.7-37.98M706.27,225.24c-72.17,0-130.68,58.51-130.68,130.68s58.51,130.68,130.68,130.68,130.68-58.51,130.68-130.68-58.51-130.68-130.68-130.68h0Z"/>
   </g>
-  <circle class="cls-2" cx="131.18" cy="916.75" r="130.68"/>
+  <circle class="cls-1" cx="131.18" cy="916.75" r="130.68"/>
 </svg>
