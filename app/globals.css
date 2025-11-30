@@ -225,6 +225,11 @@ body {
   background-position: -110% 0;
   animation: statueShineWave 1.6s linear infinite;
 }
+
+.meta-lab-page .statue-shine-overlay {
+  mask-image: url("/meta-lab-beaker.svg");
+  -webkit-mask-image: url("/meta-lab-beaker.svg");
+}
 @keyframes statueShineWave { /* Change Shiny Streak (ShinyStreak) characteristics of the LexiQ™ Statue */
   0% {
     opacity: 0.003;
@@ -384,6 +389,12 @@ body {
   justify-content: center;
   position: relative;
   padding-bottom: 0.15rem;
+}
+
+.meta-lab-page .slot-hint {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .slot-hint::after {
