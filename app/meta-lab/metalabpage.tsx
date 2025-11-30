@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import facebookIcon from "@/guidance/facebook.svg";
 import instagramIcon from "@/guidance/instagram.svg";
+import metaLabLogoSvg from "@/guidance/META Laboratory - Logo.svg";
 
 import { TabNavigation } from "@/components/PageTabs";
 import { WaveSurface } from "@/components/WaveSurface";
@@ -15,6 +16,8 @@ import Statue from "./components/Statue";
 const SCROLL_HINT_TEXT = "META Lab website";
 const META_LAB_MEMBERS_URL = "https://sites.middlebury.edu/metalab/";
 const HERO_SHIFT_THRESHOLD = 80;
+const HERO_LOGO_SRC = encodeURI(metaLabLogoSvg.src);
+
 const SOCIAL_LINKS = [
   {
     href: "https://x.com/MIIS_META_LAB",
@@ -77,7 +80,7 @@ export default function MetaLabPage() {
         <div className={`animate-fade-in ${heroShifted ? "self-start" : "self-start"}`}>
           <div className="group relative inline-flex -translate-x-2 translate-y-14 sm:-translate-x-3 sm:translate-y-18">
             <Image
-              src="/meta-lab-logo.svg"
+              src={metaLabLogoSvg}
               alt="META Laboratory"
               width={520}
               height={180}
@@ -85,7 +88,7 @@ export default function MetaLabPage() {
               className="h-auto w-[min(420px,70vw)] object-contain"
             />
             <img
-              src="/meta-lab-logo.svg"
+              src={HERO_LOGO_SRC}
               alt="META glow overlay"
               aria-hidden
               className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-275 group-hover:opacity-30 mix-blend-screen brightness-195 saturate-5"

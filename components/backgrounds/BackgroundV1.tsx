@@ -15,6 +15,7 @@ function SwirlParticles() {
   const materialRef = useRef<any>(null);
 
   const cycleRef = useRef({ lastCycleIndex: -1, hasResetThisCycle: false });
+  const invalidLogRef = useRef(false);
 
   const baseSize = 0.014;
   const featherExtraSize = 0.03; // extra size added at full feather (softer, larger halo at max feather)
@@ -65,6 +66,24 @@ function SwirlParticles() {
     if (!geometry) return;
 
     const positions = geometry.attributes.position.array as Float32Array;
+
+    const resetParticle = (idx: number) => {
+      positions[idx] = (Math.random() - 0.5) * 5;
+      positions[idx + 1] = (Math.random() - 0.5) * 3;
+      positions[idx + 2] = (Math.random() - 0.5) * 2;
+    };
+
+    let invalidFound = false;
+    for (let i = 0; i < positions.length; i += 3) {
+      if (
+        !Number.isFinite(positions[i]) ||
+        !Number.isFinite(positions[i + 1]) ||
+        !Number.isFinite(positions[i + 2])
+      ) {
+        resetParticle(i);
+        invalidFound = true;
+      }
+    }
 
     // Timed fade / reset cycle
     const leadIn = 4;
@@ -260,9 +279,19 @@ function SwirlParticles() {
       dz *= scale;
 
       // Update positions
-      positions[i] += dx;
-      positions[i + 1] += dy;
-      positions[i + 2] += dz;
+      const nextX = positions[i] + dx;
+      const nextY = positions[i + 1] + dy;
+      const nextZ = positions[i + 2] + dz;
+
+      if (!Number.isFinite(nextX) || !Number.isFinite(nextY) || !Number.isFinite(nextZ)) {
+        resetParticle(i);
+        invalidFound = true;
+        continue;
+      }
+
+      positions[i] = nextX;
+      positions[i + 1] = nextY;
+      positions[i + 2] = nextZ;
 
       // Expanded boundary wrapping to match wider field
       if (positions[i] > 4.5) positions[i] = -4.5;
@@ -274,6 +303,15 @@ function SwirlParticles() {
     }
 
     geometry.attributes.position.needsUpdate = true;
+
+    if (invalidFound) {
+      if (!invalidLogRef.current) {
+        console.warn("SwirlParticles: detected invalid positions; resetting affected particles.");
+        invalidLogRef.current = true;
+      }
+    } else if (invalidLogRef.current) {
+      invalidLogRef.current = false;
+    }
   });
 
   return (

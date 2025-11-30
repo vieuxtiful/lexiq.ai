@@ -396,7 +396,7 @@ export default function MeetTheTeamPage() {
             <br />
             Through the
             <span className="text-[#20548d]"> Mixed-Methods Evaluation, Training, and Analysis (META) Laboratory </span>
-            at the Institute, data-driven solutions are developed to streamline workflows and stymie wasteful resource utilization, increasing efficiency and enabling enhanced user experiences across domains.
+            at the Middlebury Institute, data-driven solutions are developed to streamline workflows and stymie wasteful resource utilization, increasing efficiency and enabling enhanced user experiences across domains.
           </p>
 
           <div
