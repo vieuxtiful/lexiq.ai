@@ -276,6 +276,9 @@ void main() {
 
         rendererRef.current.dpr = Math.min(window.devicePixelRatio, 2);
         const { clientWidth: wCSS, clientHeight: hCSS } = containerRef.current;
+        if (!wCSS || !hCSS) {
+          return;
+        }
         rendererRef.current.setSize(wCSS, hCSS);
 
         const dpr = rendererRef.current.dpr;
@@ -376,6 +379,9 @@ void main() {
     uniformsRef.current.intensity.value = intensity;
 
     const { clientWidth: wCSS, clientHeight: hCSS } = containerRef.current;
+    if (!wCSS || !hCSS) {
+      return;
+    }
     const dpr = rendererRef.current.dpr;
     const { anchor, dir } = getAnchorAndDir(raysOrigin, wCSS * dpr, hCSS * dpr);
     uniformsRef.current.rayPos.value = anchor;

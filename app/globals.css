@@ -201,6 +201,68 @@ body {
   transform: translateY(0);
   transition: none;
 }
+.statue-shine-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 9.5%,
+    rgba(255, 255, 255, 0.7) 30%,
+    rgba(255, 255, 255, 0) 95%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  mask-image: url("/lexiq-statue.svg");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: url("/lexiq-statue.svg");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  background-size: 220% 100%;
+  background-position: -110% 0;
+  animation: statueShineWave 1.6s linear infinite;
+}
+@keyframes statueShineWave { /* Change Shiny Streak (ShinyStreak) characteristics of the LexiQ™ Statue */
+  0% {
+    opacity: 0.003;
+    background-position: -110% 0;
+  }
+  15% {
+    opacity: 0.012;
+    background-position: -82% 0;
+  }
+  30% {
+    opacity: 0.036;
+    background-position: -54% 0;
+  }
+  45% {
+    opacity: 0.06;
+    background-position: -26% 0;
+  }
+  60% {
+    opacity: 0.075;
+    background-position: 2% 0;
+  }
+  75% {
+    opacity: 0.058;
+    background-position: 30% 0;
+  }
+  90% {
+    opacity: 0.028;
+    background-position: 58% 0;
+  }
+  96% {
+    opacity: 0;
+    background-position: 110% 0;
+  }
+  100% {
+    opacity: 0;
+    background-position: -110% 0;
+  }
+}
 
 @keyframes typewriterBlink {
   0%,
@@ -213,14 +275,38 @@ body {
   }
 }
 
-@keyframes caretGlowFadeShort {
+@keyframes caretBlinkTwiceSequence {
   0% {
     opacity: 1;
   }
-  8% {
+  20% {
     opacity: 1;
   }
-  40% {
+  30% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes caretBlinkFadeLoop {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
     opacity: 1;
   }
   100% {
@@ -239,6 +325,21 @@ body {
   }
 }
 
+@keyframes caretBlinkFadeLoopProgramFast {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.75;
+  }
+  60% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .typewriter-text {
   overflow: hidden;
 }
@@ -253,59 +354,27 @@ body {
 }
 
 .name-caret {
-  width: 12px;
+  width: 10.8px;
 }
 
-.caret-loop {
-  animation: caretBlinkTwice 0.5s linear 1 forwards, caretGlowFade 1.95s ease 0.5s infinite;
+.blinking-caret--sequence {
+  animation: caretBlinkTwiceSequence 1s step-end 1 forwards, caretBlinkFadeLoop 0.5s ease-out 1s infinite;
   animation-fill-mode: forwards, none;
 }
 
-.caret-loop-short {
-  animation: caretBlinkTwice 0.5s linear 1 forwards, caretGlowFadeShort 1.4625s ease 0.5s infinite;
+.blinking-caret--sequence-no-loop {
+  animation: caretBlinkTwiceSequence 1s step-end 1 forwards;
+  animation-fill-mode: forwards;
+}
+
+.blinking-caret--sequence-name {
+  animation: caretBlinkTwiceSequence 1.5s step-end 1 forwards, caretBlinkFadeLoop 0.75s ease-out 1.5s infinite;
   animation-fill-mode: forwards, none;
 }
 
-.caret-once {
-  animation: caretBlinkTwice 0.5s linear 1 forwards;
-}
-
-.caret-static {
-  animation: none;
-  opacity: 1;
-}
-
-@keyframes caretBlinkTwice {
-  0% {
-    opacity: 1;
-  }
-  25% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  75% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes caretGlowFade {
-  0% {
-    opacity: 1;
-  }
-  10% {
-    opacity: 1;
-  }
-  44% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+.blinking-caret--sequence-program-fast {
+  animation: caretBlinkTwiceSequence 1s step-end 1 forwards, caretBlinkFadeLoopProgramFast 0.5s ease-out 1s infinite;
+  animation-fill-mode: forwards, none;
 }
 
 .slot-hint {
@@ -346,18 +415,24 @@ body {
 .slot-hint__arrow {
   display: inline-block;
   margin-left: 0.35rem;
-  animation: slotHintArrowHop 1.5s ease-in-out infinite;
+  animation: slotHintArrowHop 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 @keyframes slotHintArrowHop {
   0% {
     transform: translateY(0);
   }
+  20% {
+    transform: translateY(-0.35rem);
+  }
   40% {
-    transform: translateY(-0.25rem);
+    transform: translateY(0.2rem);
+  }
+  60% {
+    transform: translateY(-0.15rem);
   }
   80% {
-    transform: translateY(0.15rem);
+    transform: translateY(0.12rem);
   }
   100% {
     transform: translateY(0);

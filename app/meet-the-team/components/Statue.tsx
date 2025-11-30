@@ -52,6 +52,7 @@ export default function Statue({ scrollY: _scrollY }: StatueProps) {
               alt="LexiQ statue"
               className="h-full w-auto"
             />
+            <div className="statue-shine-overlay" aria-hidden />
             <img
               src="/lexiq-statue.svg"
               alt="LexiQ statue highlight"

@@ -5,40 +5,55 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { TabNavigation } from "@/components/PageTabs";
+import { WaveSurface } from "@/components/WaveSurface";
 
 import Statue from "./components/Statue";
 
 const teamBios = [
   {
     name: "Vieux Valcin",
-    program: "Translation & Localization Management",
+    program: "Translation and Localization Management",
     affiliation: "Technical Lead, Full-Stack",
-    bio: "Shaping the LexiQ™ experimentation stack by translating partner requirements into deployable localization systems that scale across markets.",
+    bio: "Joined META Lab in September 2025",
   },
   {
     name: "Boce Jia",
-    program: "Translation & Localization Management",
+    program: "Translation and Localization Management",
     affiliation: "Engineer, Machine Learning",
-    bio: "Machine learning specialist architecting evaluation loops, prompt governance, and telemetry safeguards for linguistic tooling in regulated environments.",
+    bio: "Class of 2026",
   },
   {
     name: "Qiqi Chen",
     program: "International Policy and Development",
     affiliation: "Computational Linguist",
-    bio: "Driving corpus curation, multilingual QA, and cultural nuance calibration for every LexiQ™ launch.",
+    bio: "Joined META Lab in September 2024",
   },
   {
     name: "Fengshi Xu",
     program: "Translation and Localization Management",
     affiliation: "Domain-Linguistic Specialist",
-    bio: "Promoting linguistic data development, deep insights, and complex knowledge integration across specified domains.",
+    bio: "Joined META Lab in September 2025",
   },
 ];
 
 type TeamMember = (typeof teamBios)[number];
+type TypingField = "name" | "program" | "affiliation";
 
 const heroBioName = "Vieux Valcin";
 const hoverAccentColor = "#20548d";
+const loopExemptAffiliations = new Set<string>([
+  "Technical Lead, Full-Stack",
+  "Engineer, Machine Learning",
+  "Computational Linguist",
+  "Domain-Linguistic Specialist",
+]);
+const acceleratedProgramFade = new Set<string>([
+  "Translation & Localization Management",
+  "Translation and Localization Management",
+  "International Policy and Development",
+]);
+
+const getHeroMember = (name: TeamMember["name"]) => teamBios.find((member) => member.name === name);
 
 const TypewriterHero = ({
   member,
@@ -46,12 +61,14 @@ const TypewriterHero = ({
   align = "left",
   className = "",
   delayMs = 0,
+  holdTyping = false,
 }: {
   member?: TeamMember;
   active: boolean;
   align?: "left" | "right";
   className?: string;
   delayMs?: number;
+  holdTyping?: boolean;
 }) => {
   const [displayedText, setDisplayedText] = useState({ name: "", program: "", affiliation: "", bio: "" });
   const [showBio, setShowBio] = useState(false);
@@ -71,26 +88,32 @@ const TypewriterHero = ({
     }
   }, []);
 
-  const typeWriter = useCallback((text: string, field: keyof typeof displayedText, speed: number) => {
-    let index = 0;
-    if (typingRefs.current[field]) {
-      clearInterval(typingRefs.current[field] as ReturnType<typeof setInterval>);
-    }
-    typingRefs.current[field] = setInterval(() => {
-      setDisplayedText((prev) => ({
-        ...prev,
-        [field]: text.slice(0, index + 1),
-      }));
-      index += 1;
-      if (index >= text.length) {
-        const intervalId = typingRefs.current[field];
-        if (intervalId) {
-          clearInterval(intervalId);
-          typingRefs.current[field] = null;
-        }
+  const typeWriter = useCallback(
+    (text: string, field: keyof typeof displayedText, speed: number, onComplete?: () => void) => {
+      let index = 0;
+      if (typingRefs.current[field]) {
+        clearInterval(typingRefs.current[field] as ReturnType<typeof setInterval>);
       }
-    }, speed);
-  }, []);
+      typingRefs.current[field] = setInterval(() => {
+        setDisplayedText((prev) => ({
+          ...prev,
+          [field]: text.slice(0, index + 1),
+        }));
+        index += 1;
+        if (index >= text.length) {
+          const intervalId = typingRefs.current[field];
+          if (intervalId) {
+            clearInterval(intervalId);
+            typingRefs.current[field] = null;
+          }
+          if (onComplete) {
+            onComplete();
+          }
+        }
+      }, speed);
+    },
+    []
+  );
 
   const startTyping = useCallback(() => {
     if (!member) {
@@ -100,41 +123,91 @@ const TypewriterHero = ({
     setDisplayedText({ name: "", program: "", affiliation: "", bio: "" });
     setShowBio(false);
     const schedule = [
-      { field: "name", text: member.name, speed: 100, delay: 0 },
-      { field: "program", text: member.program, speed: 50, delay: 200 },
-      { field: "affiliation", text: member.affiliation, speed: 100, delay: 400 },
-    ] as const;
+      { field: "name" as const, text: member.name, speed: 100, delay: 0 },
+      { field: "program" as const, text: member.program, speed: 50, delay: 200 },
+      { field: "affiliation" as const, text: member.affiliation, speed: 100, delay: 400 },
+    ];
 
     schedule.forEach(({ field, text, speed, delay }) => {
-      const timeoutId = setTimeout(() => typeWriter(text, field, speed), delay);
+      const timeoutId = setTimeout(() => {
+        typeWriter(text, field, speed, () => {
+          if (field === "affiliation") {
+            setDisplayedText((prev) => ({ ...prev, bio: member.bio }));
+            setShowBio(true);
+          }
+        });
+      }, delay);
       timeoutRefs.current.push(timeoutId);
     });
-
-    const bioTimeout = setTimeout(() => {
-      setDisplayedText((prev) => ({ ...prev, bio: member.bio }));
-      setShowBio(true);
-    }, 800);
-    timeoutRefs.current.push(bioTimeout);
   }, [clearTimers, member, typeWriter]);
 
   useEffect(() => {
-    if (active) {
-      startTimeoutRef.current = setTimeout(() => {
-        startTyping();
-      }, delayMs);
-    } else {
+    if (!active) {
       clearTimers();
       setDisplayedText({ name: "", program: "", affiliation: "", bio: "" });
       setShowBio(false);
+      return () => {
+        clearTimers();
+      };
     }
+
+    if (holdTyping) {
+      clearTimers();
+      return () => {
+        clearTimers();
+      };
+    }
+
+    startTimeoutRef.current = setTimeout(() => {
+      startTyping();
+    }, delayMs);
+
     return () => {
       clearTimers();
     };
-  }, [active, clearTimers, delayMs, startTyping]);
+  }, [active, clearTimers, delayMs, holdTyping, startTyping]);
+
+  useEffect(() => {
+    if (holdTyping) {
+      setDisplayedText({ name: "", program: "", affiliation: "", bio: "" });
+      setShowBio(false);
+    }
+  }, [holdTyping]);
 
   if (!member) {
     return null;
   }
+
+  const getCaretClass = (field: TypingField) => {
+    const classes = ["blinking-caret"];
+
+    if (field === "name") {
+      classes.push("name-caret");
+    }
+
+    const hasCompletedField = displayedText[field] === member[field];
+
+    if (!hasCompletedField) {
+      return classes.join(" ");
+    }
+
+    const skipLoop = field === "affiliation" && loopExemptAffiliations.has(member.affiliation);
+
+    if (skipLoop) {
+      classes.push("blinking-caret--sequence-no-loop");
+      return classes.join(" ");
+    }
+
+    if (field === "name") {
+      classes.push("blinking-caret--sequence-name");
+    } else if (field === "program" && acceleratedProgramFade.has(member.program)) {
+      classes.push("blinking-caret--sequence-program-fast");
+    } else {
+      classes.push("blinking-caret--sequence");
+    }
+
+    return classes.join(" ");
+  };
 
   const handleNameHover = (hovering: boolean) => {
     setIsHovered(hovering);
@@ -155,15 +228,15 @@ const TypewriterHero = ({
         >
           {displayedText.name}
         </span>
-        <span className="blinking-caret" aria-hidden="true" />
+        <span className={getCaretClass("name")} aria-hidden="true" />
       </div>
       <div className="typewriter-text text-xs font-semibold uppercase tracking-[0.4em] text-black/80">
         {displayedText.program}
-        <span className="blinking-caret" aria-hidden="true" />
+        <span className={getCaretClass("program")} aria-hidden="true" />
       </div>
       <div className="typewriter-text text-xs text-black/70">
         {displayedText.affiliation}
-        <span className="blinking-caret" aria-hidden="true" />
+        <span className={getCaretClass("affiliation")} aria-hidden="true" />
       </div>
       <div className={`text-xs text-black/70 ${showBio ? "bio-fade-in" : "bio-fade-out"}`}>{displayedText.bio}</div>
     </div>
@@ -174,12 +247,21 @@ export default function MeetTheTeamPage() {
   const [scrollY, setScrollY] = useState(0);
   const [segmentHeight, setSegmentHeight] = useState(400);
   const [chromeVisible, setChromeVisible] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (scrollY <= 4) {
+      setHasScrolled(false);
+      return;
+    }
+    setHasScrolled(true);
+  }, [scrollY]);
 
   useEffect(() => {
     const updateSegment = () => setSegmentHeight(Math.max(window.innerHeight * 0.22, 180));
@@ -194,15 +276,38 @@ export default function MeetTheTeamPage() {
   }, []);
 
   const heroMembers = [
-    { member: teamBios[0], align: "left" as const, className: "absolute left-0 -top-2 max-w-sm", delay: 1000 },
-    { member: teamBios[1], align: "right" as const, className: "absolute right-0 -top-2 max-w-sm", delay: 0 },
-    { member: teamBios[2], align: "left" as const, className: "absolute left-0 top-[12.25rem] max-w-sm", delay: 0 },
-    { member: teamBios[3], align: "right" as const, className: "absolute right-0 top-[12.25rem] max-w-sm", delay: 150 },
+    {
+      member: getHeroMember("Vieux Valcin"),
+      align: "left" as const,
+      className: "absolute left-0 -top-2 max-w-sm",
+      delay: 700,
+      scrollTrigger: 0.35,
+    },
+    {
+      member: getHeroMember("Boce Jia"),
+      align: "right" as const,
+      className: "absolute right-0 -top-2 max-w-sm",
+      delay: 100,
+      scrollTrigger: 1.15,
+    },
+    {
+      member: getHeroMember("Qiqi Chen"),
+      align: "left" as const,
+      className: "absolute left-0 top-[12.25rem] max-w-sm",
+      delay: 200,
+      scrollTrigger: 1.95,
+    },
+    {
+      member: getHeroMember("Fengshi Xu"),
+      align: "right" as const,
+      className: "absolute right-0 top-[12.25rem] max-w-sm",
+      delay: 350,
+      scrollTrigger: 2.75,
+    },
   ];
 
-  const stages = heroMembers.length;
-  const currentStage = Math.min(Math.floor(scrollY / segmentHeight), stages);
-  const heroShifted = currentStage > 0;
+  const scrollUnits = scrollY / Math.max(segmentHeight, 1);
+  const heroShifted = scrollUnits >= (heroMembers[0]?.scrollTrigger ?? 0);
 
   const showScrollHint = scrollY < 80;
 
@@ -214,31 +319,48 @@ export default function MeetTheTeamPage() {
       <div className="pointer-events-none fixed bottom-4 left-4 h-8 w-8 border-b-2 border-l-2 border-gray-300" />
       <div className="pointer-events-none fixed bottom-4 right-4 h-8 w-8 border-b-2 border-r-2 border-gray-300" />
 
-      <div className="fixed inset-x-0 top-0 z-20 flex flex-col items-center gap-4 px-6 pt-6">
-        <div className="w-full max-w-4xl text-white">
+      <div className="fixed inset-x-0 top-10 z-30 px-6 sm:px-10">
+        <div className="mx-auto w-full max-w-5xl text-white">
           <TabNavigation current="team" />
         </div>
-        <div
-          className={`mt-28 flex flex-col items-center gap-2 transition-opacity duration-700 ${
-            chromeVisible ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div className="flex w-full max-w-3xl items-center justify-between text-white">
+      </div>
+
+      <div
+        className={`fixed inset-x-0 top-[15rem] z-20 flex flex-col items-center gap-2 px-6 transition-opacity duration-700 ${
+          chromeVisible ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between text-white">
+          <div className="group relative inline-flex -translate-x-2 items-center sm:-translate-x-4">
             <Image
               src="/miis-logo.svg"
               alt="Middlebury Institute of International Studies"
               width={192}
               height={64}
               priority
-              className="h-16 w-auto -translate-x-6 object-contain sm:-translate-x-10"
+              className="h-16 w-auto object-contain"
             />
+            <img
+              src="/miis-logo.svg"
+              alt="Middlebury glow overlay"
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-275 group-hover:opacity-30 mix-blend-screen brightness-145 saturate-5"
+            />
+          </div>
+          <div className="group relative inline-flex -translate-x-16 items-center sm:-translate-x-20">
             <Image
               src="/meta-lab-logo.svg"
               alt="META Laboratory"
               width={160}
               height={48}
               priority
-              className="h-12 w-auto translate-x-6 object-contain sm:translate-x-10"
+              className="h-12 w-auto object-contain"
+            />
+            <img
+              src="/meta-lab-logo.svg"
+              alt="META glow overlay"
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-275 group-hover:opacity-30 mix-blend-screen brightness-195 saturate-5"
             />
           </div>
         </div>
@@ -254,12 +376,12 @@ export default function MeetTheTeamPage() {
         <div className={`animate-fade-in ${heroShifted ? "self-start" : "self-start"}`}>
           <div className="group relative inline-flex">
             <Image
-              src="/we-are-removebg.png"
+              src="/we-are.svg"
               alt="We are"
               width={520}
               height={180}
               priority
-              className="h-auto w-[min(420px,70vw)] object-contain translate-y-8 sm:translate-y-12"
+              className="h-auto w-[min(420px,70vw)] object-contain -translate-x-2 translate-y-14 sm:-translate-x-3 sm:translate-y-18"
             />
             <div
               className="pointer-events-none absolute inset-0 rounded-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -269,12 +391,12 @@ export default function MeetTheTeamPage() {
         </div>
         <div className="mt-12 space-y-4 animate-fade-in">
           <p className="max-w-xl text-sm leading-relaxed text-gray-700 transition-all duration-500">
-            ...a passionate graduate student cohort piqued by the potential of artificial intelligence and technology to automate and improve.
+            ...a passionate graduate student cohort piqued by the potential of AI, information, and technology to expedite quotidian localization processes.
             <br />
             <br />
             Through the
             <span className="text-[#20548d]"> Mixed-Methods Evaluation, Training, and Analysis (META) Laboratory </span>
-            at the Institute, capabilities to streamline workflows are developed to stymie wasteful resource utilization, enabling enhanced user experiences across domains.
+            at the Institute, data-driven solutions are developed to streamline workflows and stymie wasteful resource utilization, increasing efficiency and enabling enhanced user experiences across domains.
           </p>
 
           <div
@@ -295,27 +417,41 @@ export default function MeetTheTeamPage() {
           </div>
         </div>
 
-        {heroShifted && (
-          <div className="relative w-full max-w-5xl min-h-[520px]">
-            {heroMembers.map((config, index) => (
-              <TypewriterHero
-                key={config.member?.name ?? index}
-                member={config.member}
-                active={currentStage > index}
-                align={config.align}
-                className={`${config.className}`}
-                delayMs={config.delay ?? 0}
-              />
-            ))}
-          </div>
-        )}
+        <div className="relative w-full max-w-5xl min-h-[520px]">
+          {heroShifted
+            ? heroMembers.map((config, index) => (
+                <TypewriterHero
+                  key={config.member?.name ?? index}
+                  member={config.member}
+                  active={scrollUnits >= config.scrollTrigger}
+                  align={config.align}
+                  className={`${config.className}`}
+                  delayMs={config.delay ?? 0}
+                />
+              ))
+            : heroMembers[0]?.member && (
+                <TypewriterHero
+                  member={heroMembers[0].member}
+                  active={!hasScrolled}
+                  align={heroMembers[0].align}
+                  className={`${heroMembers[0].className}`}
+                  delayMs={heroMembers[0].delay ?? 0}
+                  holdTyping={!hasScrolled}
+                />
+              )}
+        </div>
       </div>
       <div className="fixed bottom-8 left-1/2 z-10 -translate-x-1/2">
-        <div className="flex items-center gap-8 rounded-full bg-black/80 px-8 py-4 text-white backdrop-blur-sm">
-          <Link href="/meta-lab" className="text-sm font-light transition-colors hover:text-gray-300">
-            About The META Lab →
-          </Link>
-        </div>
+        <Link
+          href="/meta-lab"
+          className="liquid-hover relative flex h-12 items-center justify-center overflow-hidden rounded-full border border-white/30 px-8 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white hover:text-white"
+        >
+          <div className="pointer-events-none absolute inset-0">
+            <WaveSurface className="wave-surface wave-surface--base h-full w-full" palette="carbon" />
+            <WaveSurface className="wave-surface wave-surface--blurred h-full w-full" variant="crest-mask" palette="carbon" />
+          </div>
+          <span className="relative z-10">About the META Lab</span>
+        </Link>
       </div>
     </div>
   );
