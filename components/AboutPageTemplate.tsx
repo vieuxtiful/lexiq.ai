@@ -74,7 +74,41 @@ const cta = {
   secondary: { label: "Download program brief", href: "/about#brief" },
 };
 
-export function AboutPageTemplate() {
+export const ABOUT_PAGE_CONTENT = {
+  hero,
+  stats,
+  capabilities,
+  experience,
+  solutions,
+  cta,
+  statLiquidFill: 0.83,
+  capabilityLiquidFill: 0.83,
+  statLiquidDisableLabels: ["Regions supported", "Integrated toolchains", "Human QA partners"],
+};
+
+type AboutPageTemplateProps = {
+  useScaffold?: boolean;
+  showHeader?: boolean;
+  wrapperClassName?: string;
+};
+
+export function AboutPageTemplate({
+  useScaffold = true,
+  showHeader = true,
+  wrapperClassName,
+}: AboutPageTemplateProps = {}) {
+  const {
+    hero,
+    stats,
+    capabilities,
+    experience,
+    solutions,
+    cta,
+    statLiquidFill,
+    capabilityLiquidFill,
+    statLiquidDisableLabels,
+  } = ABOUT_PAGE_CONTENT;
+
   return (
     <SectionedPage
       current="about"
@@ -84,8 +118,12 @@ export function AboutPageTemplate() {
       experience={experience}
       solutions={solutions}
       cta={cta}
-      statLiquidFill={0.83}
-      statLiquidDisableLabels={["Regions supported", "Integrated toolchains", "Human QA partners"]}
+      statLiquidFill={statLiquidFill}
+      capabilityLiquidFill={capabilityLiquidFill}
+      statLiquidDisableLabels={statLiquidDisableLabels}
+      useScaffold={useScaffold}
+      showHeader={showHeader}
+      wrapperClassName={wrapperClassName}
     />
   );
 }

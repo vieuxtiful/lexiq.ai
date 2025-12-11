@@ -3,23 +3,23 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-import { BackgroundV1 } from "./BackgroundV1";
-import { CareersPageBackgroundV2 } from "./CareersPageBackgroundV2";
+import AboutPageBackgroundMosaic from "./AboutPageBackgroundMosaic";
+import MainPageBackground from "./MainPageBackground";
 import { ensureValidBufferGeometry } from "./ensureValidBufferGeometry";
 
-const CAREERS_ROUTE_PREFIX = "/careers";
+const ABOUT_ROUTE = "/about";
 
 export function GlobalBackground() {
   const pathname = usePathname();
-  const isCareersRoute = pathname?.startsWith(CAREERS_ROUTE_PREFIX);
+  const isAboutRoute = pathname === ABOUT_ROUTE;
 
   useEffect(() => {
     ensureValidBufferGeometry();
   }, []);
 
-  if (isCareersRoute) {
-    return <CareersPageBackgroundV2 />;
+  if (isAboutRoute) {
+    return <AboutPageBackgroundMosaic className="fixed inset-0" />;
   }
 
-  return <BackgroundV1 />;
+  return <MainPageBackground className="fixed inset-0" />;
 }

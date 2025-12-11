@@ -54,6 +54,9 @@ export type SectionedPageProps = {
   capabilityLiquidFill?: number;
   disableStatLiquid?: boolean;
   statLiquidDisableLabels?: string[];
+  useScaffold?: boolean;
+  showHeader?: boolean;
+  wrapperClassName?: string;
 };
 
 export function SectionedPage({
@@ -68,18 +71,23 @@ export function SectionedPage({
   capabilityLiquidFill = 0.83,
   disableStatLiquid = false,
   statLiquidDisableLabels = [],
+  useScaffold = true,
+  showHeader = true,
+  wrapperClassName,
 }: SectionedPageProps) {
   const [hoveredStatLabel, setHoveredStatLabel] = useState<string | null>(null);
   const statLiquidDisableSet = new Set(statLiquidDisableLabels);
 
-  return (
-    <PageScaffold>
-      <header className="flex flex-col items-start gap-8" data-scroll-section data-fade>
-        <TabNavigation current={current} />
-        <div className="flex items-center gap-4 text-sm text-white/80">
-          <Image src="/LexiQ_Team_Logo_(white).png" alt="LexiQ logo" width={120} height={40} priority />
-        </div>
-      </header>
+  const content = (
+    <>
+      {showHeader && (
+        <header className="flex flex-col items-start gap-8" data-scroll-section data-fade>
+          <TabNavigation current={current} />
+          <div className="flex items-center gap-4 text-sm text-white/80">
+            <Image src="/LexiQ_Team_Logo_(white).png" alt="LexiQ logo" width={120} height={40} priority />
+          </div>
+        </header>
+      )}
 
       <section className="hero-section" data-scroll-section>
         <div className="space-y-10" data-fade>
@@ -273,6 +281,14 @@ export function SectionedPage({
           </div>
         </div>
       </section>
-    </PageScaffold>
+    </>
   );
+
+  if (useScaffold) {
+    return <PageScaffold>{content}</PageScaffold>;
+  }
+
+  const fallbackWrapper = "flex flex-col gap-24 px-6 py-16 sm:px-10 md:px-12 lg:px-24";
+
+  return <div className={wrapperClassName ?? fallbackWrapper}>{content}</div>;
 }
