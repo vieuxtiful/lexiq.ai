@@ -35,12 +35,29 @@ const CONTACT_CARDS = [
 
 export default function ContactPage() {
   const [scrollY, setScrollY] = useState(0);
+  const [fadeProgress, setFadeProgress] = useState(0);
   const [chromeVisible, setChromeVisible] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      setScrollY(currentScroll);
+
+      const doc = document.documentElement;
+      const scrollTop = currentScroll || doc.scrollTop || 0;
+      const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
+      const raw = scrollTop / maxScroll;
+      const clamped = Math.min(Math.max(raw, 0), 1);
+      setFadeProgress(clamped);
+    };
+
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,6 +74,17 @@ export default function ContactPage() {
       <div className="pointer-events-none fixed top-4 right-4 h-8 w-8 border-r-2 border-t-2 border-gray-200" />
       <div className="pointer-events-none fixed bottom-4 left-4 h-8 w-8 border-b-2 border-l-2 border-gray-200" />
       <div className="pointer-events-none fixed bottom-4 right-4 h-8 w-8 border-b-2 border-r-2 border-gray-200" />
+
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%)",
+          opacity: fadeProgress,
+          transition: "opacity 120ms linear",
+        }}
+      />
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-[#F7F8FB] via-[#F7F8FB]/95 to-transparent" />
 
       <div className="fixed inset-x-0 top-10 z-30 px-6 sm:px-10">
         <div className="mx-auto w-full max-w-5xl text-white">
@@ -125,7 +153,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-8 left-1/2 z-10 -translate-x-1/2">
+      <div className="fixed bottom-16 left-1/2 z-10 -translate-x-1/2">
         <Link
           href={`mailto:${CONTACT_EMAIL}`}
           className="liquid-hover relative flex h-12 items-center justify-center overflow-hidden rounded-full border border-white/30 px-8 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white hover:text-white"
@@ -136,6 +164,9 @@ export default function ContactPage() {
           </div>
           <span className="relative z-10">Send your brief</span>
         </Link>
+      </div>
+      <div className="fixed inset-x-0 bottom-2 z-10 text-center text-[0.7rem] tracking-wide text-black/60">
+        © 2025 LexiQ™ Development Team. All rights reserved.
       </div>
     </div>
   );

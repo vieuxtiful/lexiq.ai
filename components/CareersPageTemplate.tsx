@@ -2,11 +2,10 @@ import { SectionedPage } from "./SectionedPage";
 
 const hero = {
   kicker: "Join LexiQ™",
-  title: "Careers designed for experimentation and craft",
+  title: "Careers",
   description: (
     <>
-      We are assembling linguists, creative technologists, producers, and engineers who obsess over storytelling
-      systems, scroll-native design, and precise QA instrumentation.
+      We seek linguists, project managers, and engineers who are empassioned to solve the industry's most complex challenges.
       <br />
       <br />
       If you thrive in hybrid human + AI workflows and want to build premium experiences for global brands, this is a
@@ -73,7 +72,17 @@ const cta = {
   secondary: { label: "Download hiring deck", href: "/careers#deck" },
 };
 
-export function CareersPageTemplate() {
+type CareersPageTemplateProps = {
+  useScaffold?: boolean;
+  showHeader?: boolean;
+  wrapperClassName?: string;
+};
+
+export function CareersPageTemplate({
+  useScaffold = true,
+  showHeader = true,
+  wrapperClassName,
+}: CareersPageTemplateProps = {}) {
   return (
     <SectionedPage
       current="careers"
@@ -89,6 +98,9 @@ export function CareersPageTemplate() {
         "Learning stipend",
         "Annual R&D sprints",
       ]}
+      useScaffold={useScaffold}
+      showHeader={showHeader}
+      wrapperClassName={wrapperClassName}
     />
   );
 }

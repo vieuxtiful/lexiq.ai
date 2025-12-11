@@ -1,56 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { MainPageTemplate } from "@/components/MainPageTemplate";
+import { TabNavigation } from "@/components/PageTabs";
 
 export default function Home() {
-  const [fadeProgress, setFadeProgress] = useState(0);
-
   useEffect(() => {
-    const handleScroll = () => {
-      const doc = document.documentElement;
-      const scrollTop = window.scrollY || doc.scrollTop || 0;
-      const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
-      const raw = scrollTop / maxScroll;
-      const clamped = Math.min(Math.max(raw, 0), 1);
-      setFadeProgress(clamped);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
-
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      document.body.style.overflow = previousOverflow;
     };
   }, []);
 
   return (
-    <div className="relative min-h-[220vh] overflow-x-hidden text-white">
+    <div className="relative h-screen overflow-hidden text-white">
       {/* Horizontal gradient overlay for left/right legibility, matching the
           About page but tuned for the main hero composition. */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           backgroundImage:
-            "linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 20%, rgba(0,0,0,0.9) 45%, rgba(0,0,0,1) 70%, rgba(0,0,0,1) 100%)",
+            "linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 15%, rgba(0,0,0,0.9) 35%, rgba(0,0,0,1) 55%, rgba(0,0,0,1) 100%)",
         }}
       />
 
-      {/* Vertical fade-to-black overlay that ramps in smoothly as the user
-          approaches the bottom of the page. This retains the mosaic at the
-          top while easing into full black near the end of the scroll. */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%)",
-          opacity: fadeProgress,
-          transition: "opacity 120ms linear",
-        }}
-      />
+      <div className="fixed inset-x-0 top-10 z-30 px-6 sm:px-10">
+        <div className="mx-auto w-full max-w-5xl text-white">
+          <TabNavigation current="home" />
+        </div>
+      </div>
 
       <MainPageTemplate current="home" />
     </div>

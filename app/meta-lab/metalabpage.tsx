@@ -162,7 +162,7 @@ export default function MetaLabPage() {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-8 left-1/2 z-10 -translate-x-1/2">
+      <div className="fixed bottom-16 left-1/2 z-10 -translate-x-1/2">
         <Link
           href="/contact"
           className="liquid-hover relative flex h-12 items-center justify-center overflow-hidden rounded-full border border-white/30 px-8 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white hover:text-white"
@@ -173,6 +173,9 @@ export default function MetaLabPage() {
           </div>
           <span className="relative z-10">Contact</span>
         </Link>
+      </div>
+      <div className="fixed inset-x-0 bottom-2 z-10 text-center text-[0.7rem] tracking-wide text-black/60">
+        © 2025 LexiQ™ Development Team. All rights reserved.
       </div>
     </div>
   );

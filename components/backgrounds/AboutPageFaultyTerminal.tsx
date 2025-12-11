@@ -235,24 +235,16 @@ float pattern(vec2 p, out vec2 q, out vec2 r) {
 }
 
 vec4 sampleGlyph(vec2 cellCoord, vec2 cellUV) {
-  float r = rand(cellCoord);
-  float scriptSelector = fract(r + uScriptMix);
-  
-  float glyphIndex;
-  
-  if (scriptSelector < 0.16666) {
-    glyphIndex = floor(mix(0.0, 41.0, r));
-  } else if (scriptSelector < 0.33333) {
-    glyphIndex = floor(mix(42.0, 83.0, r));
-  } else if (scriptSelector < 0.5) {
-    glyphIndex = floor(mix(84.0, 125.0, r));
-  } else if (scriptSelector < 0.66666) {
-    glyphIndex = floor(mix(126.0, 167.0, r));
-  } else if (scriptSelector < 0.83333) {
-    glyphIndex = floor(mix(168.0, 209.0, r));
-  } else {
-    glyphIndex = floor(mix(210.0, 255.0, r));
-  }
+  // Match main-page behavior: use a slightly more complex seed so adjacent
+  // rows are much less likely to share identical random streams, then sample
+  // uniformly across the full atlas grid so every populated cell is reachable.
+  float r = rand(vec2(
+    cellCoord.x * 1.1234,
+    cellCoord.y * 1.234567 + cellCoord.x * 0.1234
+  ));
+
+  float totalCells = uGlyphCols * uGlyphRows;
+  float glyphIndex = floor(r * totalCells);
   
   float col = mod(glyphIndex, uGlyphCols);
   float row = floor(glyphIndex / uGlyphCols);
@@ -340,8 +332,12 @@ vec3 getColor(vec2 p, vec4 mask) {
 
   // Use cellCoord to derive a palette index. This is stable over time for
   // each glyph cell, and distributes the careers colors pseudo-randomly
-  // across the mosaic.
-  float colorRand = hash21(cellCoord);
+  // across the mosaic. Match main-page hashing so both mosaics share
+  // similar per-glyph palette variation.
+  float colorRand = hash21(vec2(
+    cellCoord.x * 0.9187,
+    cellCoord.y * 1.137
+  ));
   int colorIndex = int(floor(colorRand * float(PALETTE_SIZE)));
   vec3 brandColor = getBrandColor(colorIndex);
 
@@ -435,6 +431,10 @@ function hexToRgb(hex: string): [number, number, number] {
   return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
 }
 
+// Atlas generator: kept in sync with MainPageBackgroundMosaic so both
+// mosaics share the same extended character set plus tuned Katakana /
+// Hangul frequencies. If you change chars or grid size here, mirror it
+// in the main-page background as well.
 function createGlyphAtlasCanvas(cols: number = 24, rows: number = 24): HTMLCanvasElement { // Glyph (mosaic) atlas canvas size **************************************************************************************************************************************************//
   const canvas = document.createElement("canvas");
   const size = 1024;
@@ -458,20 +458,15 @@ function createGlyphAtlasCanvas(cols: number = 24, rows: number = 24): HTMLCanva
   const chars: string[] = [
     "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
     "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-    "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
-    "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-    "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
-    "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o",
-    "ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ","タ","チ","ツ","テ","ト",
-    "ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ",
-    "가","나","다","라","마","바","사","아","자","차","카","타","파","하","거","너","더","러","머","버",
-    "서","어","저","처","커","터","퍼","허","고","노","도","로","모","보","소","오","조","초","코","토","포","호",
+    // Match main-page atlas: further slimmed Katakana subset to lower overall
+    // frequency while still keeping a small Japanese presence in the mosaic.
+    "ア","ウ","カ","ラ",
+    // Match main-page atlas: slimmed Hangul subset to modestly reduce its
+    // share while preserving recognizable Korean presence.
+    "가","나","다","라","마","바","사","아","자","차","카","타","파","하",
     "ا","ب","ت","ث","ج","ح","خ","د","ذ","ر","ز","س","ش","ص","ض","ط","ظ","ع","غ","ف",
     "ق","ك","ل","م","ن","ه","و","ي","ة","ى","ء","آ","أ","ؤ","إ","ئ","ـ","ً","ٌ","ٍ","َ","ُ",
     "p","q","r","s","t","u","v","w","x","y","z","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","É",
-    "p","q","r","s","t","u","v","w","x","y","z",
-    "p","q","r","s","t","u","v","w","x","y","z",
-    "p","q","r","s","t","u","v","w","x","y","z",
     "Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","Õ","Ö","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß","ö",
     "0","1","2","3","4","5","6","7","8","9","!","@","#","$","%","^","&","*","(",")","[","]",
     "{","}","<",">","?","/","\\","|","-","_","+","=","~","`","\"","'",";",":",
@@ -530,8 +525,8 @@ export default function AboutPageBackgroundMosaic({
   dpr: dprProp,
   pageLoadAnimation = true,
   brightness = 1.950,
-  glyphAtlasCols = 16,
-  glyphAtlasRows = 16,
+  glyphAtlasCols = 24,
+  glyphAtlasRows = 24,
   className,
   style,
   ...rest
