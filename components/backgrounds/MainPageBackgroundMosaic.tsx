@@ -91,6 +91,11 @@ uniform vec3 uTint;
 uniform vec2 uMouse;
 uniform float uBrightness;
 
+uniform float uMonochromeInk;
+uniform vec3 uInkColor;
+uniform float uInkStrength;
+uniform float uUseTransparentBackground;
+
 uniform sampler2D uGlyphAtlas;
 uniform float uGlyphCols;
 uniform float uGlyphRows;
@@ -281,7 +286,7 @@ vec2 barrel(vec2 uv){
   return c * 0.5 + 0.5;
 }
 
-vec3 getColor(vec2 p, vec4 mask) {
+vec4 getColor(vec2 p, vec4 mask) {
   float bar = step(mod(p.y + time * 20.0, 1.0), 0.2) * 0.4 + 1.0;
   bar *= uScanlineIntensity;
   
@@ -309,8 +314,6 @@ vec3 getColor(vec2 p, vec4 mask) {
               digit(p + vec2(0.0, off)) +
               digit(p + vec2(off, off));
   
-  vec3 baseColor = vec3(0.9) * middle + sum * 0.1 * vec3(1.0) * bar;
-
   float colorRand = hash21(vec2(
     cellCoord.x * 0.9187,
     cellCoord.y * 1.137
@@ -319,7 +322,15 @@ vec3 getColor(vec2 p, vec4 mask) {
   vec3 brandColor = getBrandColor(colorIndex);
 
   float intensity = (middle + sum * 0.3) * bar;
-  return brandColor * intensity;
+
+  vec3 outColor = brandColor * intensity;
+  if (uMonochromeInk > 0.5) {
+    float inkIntensity = intensity * uInkStrength;
+    outColor = uInkColor * inkIntensity;
+    intensity = inkIntensity;
+  }
+
+  return vec4(outColor, clamp(intensity, 0.0, 1.0));
 }
 
 void main() {
@@ -333,7 +344,9 @@ void main() {
   }
   
   vec2 p = uv * uScale;
-  vec3 col = getColor(p, mask);
+  vec4 colSample = getColor(p, mask);
+  vec3 col = colSample.rgb;
+  float outAlpha = colSample.a;
   
   if(uChromaticAberration != 0.0){
     vec2 ca = vec2(uChromaticAberration) / iResolution.xy;
@@ -349,7 +362,8 @@ void main() {
     col += (rnd - 0.5) * (uDither * 0.003922);
   }
   
-  gl_FragColor = vec4(col, 1.0);
+  float a = mix(1.0, outAlpha, uUseTransparentBackground);
+  gl_FragColor = vec4(col, a);
 }
 `;
 
@@ -369,6 +383,10 @@ interface FaultyTerminalProps extends HTMLAttributes<HTMLDivElement> {
   dither?: number | boolean;
   curvature?: number;
   tint?: string;
+  monochromeInk?: boolean;
+  inkColor?: string;
+  inkStrength?: number;
+  useTransparentBackground?: boolean;
   mouseReact?: boolean;
   mouseStrength?: number;
   dpr?: number;
@@ -470,7 +488,7 @@ export default function MainPageBackgroundMosaic({
   // Base glyph size in shader space (lower = smaller characters).
   digitSize = 0.905,
   // Global time scale controlling how quickly the mosaic evolves.
-  timeScale = 4.01259,
+  timeScale = 7.01825, //原來: 4.01259//
   pause = false,
   // Strength of horizontal scanline effect layered over the glyphs.
   scanlineIntensity = 0.5832,
@@ -478,17 +496,21 @@ export default function MainPageBackgroundMosaic({
   // Slightly reduced from 1 to soften the global flicker effect.
   flickerAmount = 21,
   noiseAmp = 0.209,
-  chromaticAberration = 12.57917, // DO NOT TOUCH //
+  chromaticAberration = 14.17917, // DO NOT TOUCH //
   dither = 0,
   // Curvature that modulates the appearance of the entire mosaic.
   curvature = 1.000925,
   // Default tint: neutral white so the palette is the primary source of color.
   tint = "#c2c2c2ff",
+  monochromeInk = false,
+  inkColor = "#000000",
+  inkStrength = 1,
+  useTransparentBackground = false,
   mouseReact = true,
   mouseStrength = 0.001,
   dpr: dprProp,
   pageLoadAnimation = true,
-  brightness = 0.95, // Brightness // 
+  brightness = 0.87, // Brightness 原來: 0.95// 
   glyphAtlasCols = 24,
   glyphAtlasRows = 24,
   className,
@@ -509,6 +531,7 @@ export default function MainPageBackgroundMosaic({
   const nextGlitchToggleRef = useRef(0);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
+  const inkVec = useMemo(() => hexToRgb(inkColor), [inkColor]);
   const ditherValue = useMemo(() => (typeof dither === "boolean" ? (dither ? 1 : 0) : dither), [dither]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -524,10 +547,21 @@ export default function MainPageBackgroundMosaic({
     const ctn = containerRef.current;
     if (!ctn) return;
 
-    const renderer = new Renderer({ dpr });
+    const renderer = new Renderer({ dpr, alpha: useTransparentBackground, premultipliedAlpha: useTransparentBackground });
     rendererRef.current = renderer;
     const { gl } = renderer;
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0, 0, 0, useTransparentBackground ? 0 : 1);
+    if (useTransparentBackground) {
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
+    gl.canvas.style.position = "absolute";
+    gl.canvas.style.inset = "0";
+    gl.canvas.style.width = "100%";
+    gl.canvas.style.height = "100%";
+    gl.canvas.style.pointerEvents = "none";
+    gl.canvas.style.zIndex = "1";
 
     const geometry = new Triangle(gl);
 
@@ -557,6 +591,10 @@ export default function MainPageBackgroundMosaic({
         uDither: { value: ditherValue },
         uCurvature: { value: curvature },
         uTint: { value: new Color(tintVec[0], tintVec[1], tintVec[2]) },
+        uMonochromeInk: { value: monochromeInk ? 1 : 0 },
+        uInkColor: { value: new Color(inkVec[0], inkVec[1], inkVec[2]) },
+        uInkStrength: { value: inkStrength },
+        uUseTransparentBackground: { value: useTransparentBackground ? 1 : 0 },
         uMouse: { value: new Float32Array([smoothMouseRef.current.x, smoothMouseRef.current.y]) },
         uMouseStrength: { value: mouseStrength },
         uUseMouse: { value: mouseReact ? 1 : 0 },
@@ -675,6 +713,10 @@ export default function MainPageBackgroundMosaic({
     scale,
     scanlineIntensity,
     tintVec,
+    inkVec,
+    inkStrength,
+    monochromeInk,
+    useTransparentBackground,
     timeScale,
   ]);
 

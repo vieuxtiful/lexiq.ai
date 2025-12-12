@@ -10,7 +10,7 @@ interface BeakerStatueProps {
   scrollY: number;
 }
 //Change position of the LexiQ™ Statue Image (SVG)//
-const STATUE_POSITION = Object.freeze({ x: 0, y: 60, z: 0 });
+const STATUE_POSITION = Object.freeze({ x: 0, y: 28, z: 0 });
 const LIGHT_RAY_PROPS = Object.freeze({
   raysOrigin: "top-right-down" as const,
   raysColor: "#fff4d1",

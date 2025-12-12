@@ -1,19 +1,48 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AboutParticleSphere } from "@/components/animations/AboutParticleSphere";
 import { PageMotionProviders } from "@/components/animations/PageMotionProviders";
 import { TabNavigation } from "@/components/PageTabs";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
+import { useThemeMode } from "@/components/theme/ThemeModeProvider";
 import { WaveSurface } from "@/components/WaveSurface";
 
 const HERO_SHIFT_THRESHOLD = 120;
 
 export default function AboutPage() {
+  const { mode } = useThemeMode();
   const [scrollY, setScrollY] = useState(0);
   const [fadeProgress, setFadeProgress] = useState(0);
+
+  const stars = useMemo(() => {
+    let seed = 4242;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+
+    const sizes = [1, 1, 1, 2, 2, 3];
+    const randomPosition = (min: number, max: number) => Math.floor(rand() * (max - min + 1)) + min;
+
+    return Array.from({ length: 300 }, (_, i) => {
+      const top = randomPosition(1, 100);
+      const left = randomPosition(1, 100);
+      const size = (sizes[Math.floor(rand() * sizes.length)] ?? 1) * 0.85;
+
+      let starClass = "star1";
+      if (i <= 50) starClass = "star1";
+      else if (i <= 100) starClass = "star2";
+      else if (i <= 150) starClass = "star3";
+      else if (i <= 200) starClass = "star4";
+      else if (i <= 250) starClass = "star5";
+      else starClass = "star6";
+
+      return { top, left, size, starClass, key: i };
+    });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,6 +72,34 @@ export default function AboutPage() {
     <SmoothScrollProvider>
       <div className="relative min-h-[220vh] overflow-x-hidden text-white">
         <PageMotionProviders />
+        {mode === "dark" ? (
+          <div
+            className="pointer-events-none fixed inset-0 z-10 overflow-hidden"
+            style={{
+              opacity: 0.85,
+              WebkitMaskImage:
+                "radial-gradient(circle at 88% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 62%)",
+              maskImage:
+                "radial-gradient(circle at 88% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 62%)",
+            }}
+          >
+            {stars.map((s) => (
+              <div
+                key={s.key}
+                className={s.starClass}
+                style={{
+                  position: "absolute",
+                  top: `${s.top}%`,
+                  left: `${s.left}%`,
+                  height: `${s.size}px`,
+                  width: `${s.size}px`,
+                  backgroundColor: "#fff1c2",
+                  borderRadius: "50%",
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
         {/* Gradient overlay: horizontal transparent-to-black blanket over the
             mosaic so the left-side hero remains legible while the animation
             is more visible on the right. */}

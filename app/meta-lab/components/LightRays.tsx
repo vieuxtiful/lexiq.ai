@@ -137,8 +137,18 @@ const LightRays = ({
       const renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio, 2), alpha: true });
       rendererRef.current = renderer;
       const { gl } = renderer;
+      gl.canvas.dataset.lightRaysCanvas = "true";
+      gl.canvas.style.position = "absolute";
+      gl.canvas.style.inset = "0";
       gl.canvas.style.width = "100%";
       gl.canvas.style.height = "100%";
+      gl.canvas.style.pointerEvents = "none";
+      gl.canvas.style.backgroundColor = "transparent";
+
+      const computedPosition = window.getComputedStyle(containerRef.current).position;
+      if (computedPosition === "static") {
+        containerRef.current.style.position = "relative";
+      }
 
       while (containerRef.current.firstChild) {
         containerRef.current.removeChild(containerRef.current.firstChild);
@@ -414,7 +424,13 @@ void main() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [followMouse]);
 
-  return <div ref={containerRef} className={`light-rays-container ${className}`.trim()} />;
+  return (
+    <div
+      ref={containerRef}
+      data-light-rays-component="true"
+      className={`light-rays-container ${className}`.trim()}
+    />
+  );
 };
 
 export default LightRays;

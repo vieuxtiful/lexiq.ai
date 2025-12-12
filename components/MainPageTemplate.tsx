@@ -110,7 +110,7 @@ export function MainPageTemplate({ current }: MainPageTemplateProps) {
             <br />
             <br />
             <br />
-            <div className="space-y-6">
+            <div className="mt-24 space-y-6">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/80">
                 Partnerships, Features &amp; Affiliations
               </p>
