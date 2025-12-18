@@ -1,13 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 import { CareersPageTemplate } from "@/components/CareersPageTemplate";
 import { TabNavigation } from "@/components/PageTabs";
+import { WaveSurface } from "@/components/WaveSurface";
 import { useThemeMode } from "@/components/theme/ThemeModeProvider";
 
+import moonIcon from "@/guidance/moon-icon.svg";
+import sunIcon from "@/guidance/sun-icon.svg";
+
 export default function CareersPage() {
-  const { mode } = useThemeMode();
+  const { mode, toggleMode } = useThemeMode();
   const [fadeProgress, setFadeProgress] = useState(0);
 
   const stars = useMemo(() => {
@@ -105,6 +110,20 @@ export default function CareersPage() {
       />
 
       <CareersPageTemplate useScaffold showHeader={false} />
+
+      <button
+        type="button"
+        onClick={toggleMode}
+        aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        className="liquid-hover fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/30 text-white/80 transition hover:border-white hover:text-white"
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <WaveSurface className="wave-surface wave-surface--base h-full w-full" palette="carbon" />
+          <WaveSurface className="wave-surface wave-surface--blurred h-full w-full" variant="crest-mask" palette="carbon" />
+        </div>
+        <Image src={mode === "dark" ? moonIcon : sunIcon} alt="" aria-hidden className="relative z-10 h-5 w-5" />
+      </button>
+
       <div className="fixed inset-x-0 bottom-2 …">© LexiQ™ Development Team. All rights reserved.</div>
     </div>
   );

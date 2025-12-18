@@ -95,7 +95,7 @@ export default function Home() {
           className="pointer-events-none fixed inset-0 z-0"
           style={{
             backgroundImage:
-              "linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 15%, rgba(0,0,0,0.9) 35%, rgba(0,0,0,1) 55%, rgba(0,0,0,1) 100%)",
+              "linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 18%, rgba(0,0,0,0.9) 46%, rgba(0,0,0,1) 76%, rgba(0,0,0,1) 100%)",
           }}
         />
         </>

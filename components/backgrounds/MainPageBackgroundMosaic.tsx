@@ -765,7 +765,7 @@ export default function MainPageBackgroundMosaic({
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        backgroundColor: "#000",
+        backgroundColor: useTransparentBackground ? "transparent" : "#000",
         ...style,
       }}
       {...rest}

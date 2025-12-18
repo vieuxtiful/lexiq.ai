@@ -146,7 +146,7 @@ export default function AboutPage() {
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/85">
           LexiQ™, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of accuracy and reliability.
         </p>
-        <div className="liquid-hover relative mt-4 overflow-hidden rounded-[36px] border border-white/12 bg-white/5 p-6 text-white">
+        <div className="liquid-hover relative mt-4 overflow-hidden rounded-[36px] border border-white/30 bg-transparent p-6 text-white/80 transition hover:border-white hover:bg-white/10">
           <div className="pointer-events-none absolute inset-0">
             <WaveSurface className="wave-surface wave-surface--base h-full w-full" palette="carbon" />
             <WaveSurface
@@ -182,7 +182,7 @@ export default function AboutPage() {
         </div>
 
         <div className="fixed inset-x-0 bottom-4 z-20 text-center text-[0.7rem] tracking-wide text-white/60">
-          2025 LexiQ Development Team. All rights reserved.
+         © 2025 LexiQ™ Development Team. All rights reserved.
         </div>
       </div>
     </SmoothScrollProvider>
