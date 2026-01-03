@@ -2,7 +2,7 @@
 
 <img src="public/LexiQ™.png" width="15%" align="right" />
 
-LexiQ™ AI xLQA, an innovative solution hand crafted by linguists, engineers, and SMEs, is built to address critical industry needs. By means of bleeding-edge multi-engine power, language QA is made
+LexiQ™ AI xLQA, an innovative solution hand crafted by linguists, engineers, and SMEs, is built to address critical industry needs. By means of bleeding-edge multi-engine power, language QA is made simple.
 
 lexiqai.vercel.app/
 
