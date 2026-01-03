@@ -1,44 +1,37 @@
-# LexiQ™
+# LexiQ AI xLQA™
 
 <img src="public/LexiQ™.png" width="15%" align="right" alt="LexiQ™ Logo" />
 
 LexiQ™, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of accuracy and reliability.
-
+lexiqai.vercel.app
 ## Overview
 
-LexiQ™ represents a unified platform designed for high performance, flexibility, and developer-friendly implementation. Our architecture combines advanced linguistic processing with cutting-edge engineering to deliver transparency and proactive quality assurance in automated workflows.
+LexiQ™ AI xLQA represents a unified platform designed for high performance, flexibility, and developer-friendly implementation. Our architecture combines advanced linguistic processing with cutting-edge engineering to deliver transparency and proactive quality assurance in automated workflows.
 
 ### Key Specifications
 
--   **Unified Platform**: Seamlessly integrates disparate workflows into a single, cohesive environment.
--   **Transparent AI**: Ensures all AI-driven decisions are transparent and understandable.
+-   **Modern Platform**: Seamlessly coagulates seamless workflows via multi-engine architecture.
+-   **Transparent xAI**: Ensures all AI-driven decisions are experiential and understandable.
 -   **Universal Language Support**: Processes and analyzes text in any language with high fidelity.
--   **Proactive Assurance**: Identifies potential issues proactively before they escalate into critical failures.
+-   **Fidelity Assurance**: Identifies potential issues proactively, evading unforeseen failures.
 
 ## Technology Stack
 
 This project is built using modern web technologies to ensure performance and scalability:
 
--   **Framework**: [Next.js](https://nextjs.org) (React)
--   **Styling**: [Tailwind CSS](https://tailwindcss.com)
--   **Graphics & Animation**: [OGL](https://github.com/oframe/ogl) for high-performance WebGL rendering.
--   **Visual Effects**: Custom GLSL shaders powering immersive backgrounds like the *Faulty Terminal* and *HyperDigital* environments.
+-   **Framework**: react→next.js
+-   **Styling**: tailwind css
+-   **Graphics & Animation**: ogl (effective webgl rendering).
+-   **Visual Effects**: Custom glsl shaders
+  
+## About
 
-## Getting Started
+Team Members:
 
-To run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-   Valcin, Vieux (Technical Lead)
+-   Jia, Boce (Engineer, Machine Learning)
+-   Xu, Fengshi (Domain-Linguistic Specialist)
+-   Chen, Qiqi (Computational Linguist)
 
 ## Project Structure
 
