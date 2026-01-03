@@ -1,8 +1,8 @@
-# LexiQ™
+<img src="public/LexiQ™.png" width="15%" />
 
-<img src="public/LexiQ™.png" width="15%" align="left" />
+## About
 
-LexiQ™, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of accuracy and reliability.
+LexiQ™ AI xLQA, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of　accuracy and reliability.
 
 ## Overview
 
