@@ -3,7 +3,9 @@
 <img src="public/LexiQ™.png" width="15%" align="right" alt="LexiQ™ Logo" />
 
 LexiQ™, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of accuracy and reliability.
+
 lexiqai.vercel.app
+
 ## Overview
 
 LexiQ™ AI xLQA represents a unified platform designed for high performance, flexibility, and developer-friendly implementation. Our architecture combines advanced linguistic processing with cutting-edge engineering to deliver transparency and proactive quality assurance in automated workflows.
