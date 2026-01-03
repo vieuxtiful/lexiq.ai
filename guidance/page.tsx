@@ -20,7 +20,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import Statue from './components/Statue';
+import Statue from './StationaryPolygon';
 
 /**
  * MeetTheTeam page component

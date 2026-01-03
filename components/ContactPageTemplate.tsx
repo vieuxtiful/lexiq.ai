@@ -60,7 +60,7 @@ const cta = {
   title: "Share your brief and timelines",
   description: "Send existing assets or just a concept—we'll respond with a tailored plan and sample motion stacks.",
   primary: { label: "Submit project details", href: "/contact#form" },
-  secondary: { label: "Email hello@lexiq.ai", href: "mailto:hello@lexiq.ai" },
+  secondary: { label: "Email vvalcin@middlebury.edu", href: "mailto:vvalcin@middlebury.edu" },
 };
 
 export function ContactPageTemplate() {

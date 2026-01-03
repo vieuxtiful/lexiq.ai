@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import calendarIcon from "@/guidance/calendar.svg";
 import emailIcon from "@/guidance/email.svg";
 
 import { TabNavigation } from "@/components/PageTabs";
@@ -14,7 +13,6 @@ import Statue from "./components/Statue";
 
 const HERO_SHIFT_THRESHOLD = 80;
 const CONTACT_EMAIL = "hello@lexiq.ai";
-const CONTACT_SCHED_URL = "https://cal.com/lexiq-team/discovery";
 
 const CONTACT_CARDS = [
   {
@@ -23,13 +21,6 @@ const CONTACT_CARDS = [
     kicker: "META Lab / LexiQ™ Dev Team",
     description: "1-3 business days.",
     icon: emailIcon,
-  },
-  {
-    href: CONTACT_SCHED_URL,
-    label: "Request a Meeting",
-    kicker: "META Lab / LexiQ™ Dev Team",
-    description: "5-7 business days.",
-    icon: calendarIcon,
   },
 ];
 
@@ -116,7 +107,7 @@ export default function ContactPage() {
           </p>
 
           <div className="slot-hint flex flex-col items-start text-left text-xs font-semibold tracking-[0.4em] text-gray-500">
-            <span className="slot-hint__text slot-hint__text--visible">Select communication channel</span>
+            <span className="slot-hint__text slot-hint__text--visible">Send us a message!</span>
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

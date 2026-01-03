@@ -1,4 +1,5 @@
-import FaultyTerminal from './about_page_background';
+import React from 'react';
+import FaultyTerminal from '@/components/backgrounds/FaultyTerminal';
 
 /**
  * Example 1: Logo centered in the viewport

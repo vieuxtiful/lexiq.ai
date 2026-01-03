@@ -1,5 +1,5 @@
 import { Renderer, Program, Mesh, Color, Triangle, Texture } from 'ogl';
-import { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 
 const vertexShader = `
 attribute vec2 position;
@@ -375,7 +375,7 @@ function createGlyphAtlasCanvas(cols: number = 16, rows: number = 16): HTMLCanva
     
     // Symbols
     '0','1','2','3','4','5','6','7','8','9','!','@','#','$','%','^','&','*','(',')','[',']',
-    '{','}','<','>','?','/','\','|','-','_','+','=','~','`','"',"'",'.',',',':',';','©','®','™'
+    '{','}','<','>','?','/','\\','|','-','_','+','=','~','`','"',"'",'.',',',':',';','©','®','™'
   ];
   
   chars.forEach((char, i) => {
@@ -617,10 +617,10 @@ export default function FaultyTerminal({
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       
       // Proper cleanup of WebGL resources
-      glyphAtlas.delete?.();
-      logoMask.delete?.();
-      program.delete?.();
-      geometry.delete?.();
+      (glyphAtlas as any).delete?.();
+      (logoMask as any).delete?.();
+      (program as any).delete?.();
+      (geometry as any).delete?.();
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       
       loadAnimationStartRef.current = 0;
