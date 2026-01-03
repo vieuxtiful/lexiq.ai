@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import emailIcon from "@/guidance/email.svg";
+import emailIcon from "@/assets/email.svg";
 
 import { TabNavigation } from "@/components/PageTabs";
 import { WaveSurface } from "@/components/WaveSurface";

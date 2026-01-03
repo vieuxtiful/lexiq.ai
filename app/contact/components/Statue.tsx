@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import LightRays from "@/app/meta-lab/components/LightRays";
-import metaLabBeakerSvg from "@/guidance/META Lab - Beaker.svg";
+import metaLabBeakerSvg from "@/assets/META Lab - Beaker.svg";
 
 interface ContactStatueProps {
   scrollY: number;

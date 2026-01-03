@@ -1,1 +1,0 @@
-Open `globe-glyphs.html` in a browser (or WindSurf). Ensure the reference video is uploaded to /mnt/data/1067915657-preview.mp4 or update the path in the HTML. Use Auto Calibrate or Manual Calibrate to measure rotation speed.

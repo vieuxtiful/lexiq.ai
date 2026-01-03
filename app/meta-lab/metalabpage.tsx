@@ -4,9 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import facebookIcon from "@/guidance/facebook.svg";
-import instagramIcon from "@/guidance/instagram.svg";
-import metaLabLogoSvg from "@/guidance/META Laboratory - Logo.svg";
+import facebookIcon from "@/assets/facebook.svg";
+import instagramIcon from "@/assets/instagram.svg";
+import metaLabLogoSvg from "@/assets/META Laboratory - Logo.svg";
 
 import { TabNavigation } from "@/components/PageTabs";
 import { WaveSurface } from "@/components/WaveSurface";

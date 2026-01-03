@@ -9,8 +9,8 @@ import AuroraOverlay from "@/components/animations/AuroraOverlay";
 import { WaveSurface } from "@/components/WaveSurface";
 import { useThemeMode } from "@/components/theme/ThemeModeProvider";
 
-import moonIcon from "@/guidance/moon-icon.svg";
-import sunIcon from "@/guidance/sun-icon.svg";
+import moonIcon from "@/assets/moon-icon.svg";
+import sunIcon from "@/assets/sun-icon.svg";
 
 export default function Home() {
   const { mode, toggleMode } = useThemeMode();

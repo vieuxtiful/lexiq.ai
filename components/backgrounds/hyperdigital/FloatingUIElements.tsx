@@ -3,9 +3,9 @@
 import { useRef, useMemo } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
-import earthColorImage from "@/guidance/earth-blue-marble.jpg";
-import earthBumpImage from "@/guidance/earth-topology.png";
-import cloudsImage from "@/guidance/clouds.png";
+import earthColorImage from "@/assets/earth-blue-marble.jpg";
+import earthBumpImage from "@/assets/earth-topology.png";
+import cloudsImage from "@/assets/clouds.png";
 
 interface UIElement {
   position: THREE.Vector3;

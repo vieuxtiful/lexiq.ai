@@ -6,9 +6,9 @@ import { Points, PointMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
-import earthColorImage from "@/guidance/earth-blue-marble.jpg";
-import earthBumpImage from "@/guidance/earth-topology.png";
-import cloudsImage from "@/guidance/clouds.png";
+import earthColorImage from "@/assets/earth-blue-marble.jpg";
+import earthBumpImage from "@/assets/earth-topology.png";
+import cloudsImage from "@/assets/clouds.png";
 
 //Color Palette/Color CSS for the Careers Background//
 const gradientColors = [

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import metaLabBulbPng from "@/guidance/META Lab - Bulb.png";
+import metaLabBulbPng from "@/assets/META Lab - Bulb.png";
 
 import LightRays from "./LightRays";
 
