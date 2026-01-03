@@ -1,10 +1,10 @@
-# LexiQ AI xLQA™
+# LexiQ™ AI xLQA
 
-<img src="public/LexiQ™.png" width="15%" align="right" alt="LexiQ™ Logo" />
+<img src="public/LexiQ™.png" width="15%" align="right" />
 
-LexiQ™, an innovative solution hand crafted by linguists, engineers, and SMEs, was built to address the most grand industry needs. It is equipped with a powerful quality assurance system to ensure the highest level of accuracy and reliability.
+LexiQ™ AI xLQA, an innovative solution hand crafted by linguists, engineers, and SMEs, is built to address critical industry needs. By means of bleeding-edge multi-engine power, language QA is made
 
-lexiqai.vercel.app
+lexiqai.vercel.app/
 
 ## Overview
 
@@ -35,13 +35,26 @@ Team Members:
 -   Xu, Fengshi (Domain-Linguistic Specialist)
 -   Chen, Qiqi (Computational Linguist)
 
-## Project Structure
+## Acknowledgments
 
--   `app/`: Application routes and page logic (Next.js App Router).
--   `components/`: Reusable UI components.
-    -   `backgrounds/`: Specialized WebGL/GLSL background components (e.g., `AboutPageFaultyTerminal`, `HyperDigitalCareersBackground`).
-    -   `animations/`: Motion components and particle effects.
--   `public/`: Static assets.
+Brewed in the Mixed-Methods Evaluation, Training, and Analysis (META) Lab
+
+-----------------------------------------(#^.^#)-----------------------------------------
+
+Lab Director: Phil Murphy, Ph.D.
+Lab GRA/Managers: Anvar Nizamov, Joey Hebl, Jr.
+Lab Members:
+-   Valcin, Vieux → Lead
+-   Chen, Qiqi
+-   Matsuzawa, Anna
+-   Xu, Fengshi
+-   Hayes, Ryan
+-   Ristino, A.J.
+
+Middlebury College
+Middlebury Institute of International Studies at Monterey
+460 Pierce Street
+Monterey, California 93940
 
 ## License
 
