@@ -25,41 +25,54 @@ This project is built using modern web technologies to ensure performance and sc
 -   **Styling**: tailwind css
 -   **Graphics & Animation**: ogl (effective webgl rendering).
 -   **Visual Effects**: Custom glsl shaders
-  
-## About
+
+## Accolades
+
+<img src="public/locworld-logo.svg" width="15%" /> <img src="public/process-innovation-challenge-logo.svg" width="12%" />
+
+### Stage Pitch and Booth Presentation (October 15, 2025)
+
+Process Innovation Challenge (PIC) Sneaks
+
+Localization World 2025 (LocWorld54)
+
+Presented by Valcin, Vieux (Technical Lead)
+
+---------------------(#^.^#)---------------------
+
+## Acknowledgments
+
+<img src="public/meta-laboratory-logo-light.svg" width="18%">
+
+Brewed in the Mixed-Methods Evaluation, Training, and Analysis (META) Lab
+
+### About
 
 Team Members:
 
 -   Valcin, Vieux (Technical Lead)
--   Jia, Boce (Engineer, Machine Learning)
+-   Jia, Boce (Machine Learning Engineer)
 -   Xu, Fengshi (Domain-Linguistic Specialist)
 -   Chen, Qiqi (Computational Linguist)
-
-## Acknowledgments
-
-Brewed in the Mixed-Methods Evaluation, Training, and Analysis (META) Lab
-
------------------------------------------(#^.^#)-----------------------------------------
 
 Lab Director: Phil Murphy, Ph.D.
 
 Lab GRA/Managers: Anvar Nizamov, Joey Hebl, Jr.
 
 Lab Members:
--   Valcin, Vieux → Lead
+-   Valcin, Vieux
 -   Chen, Qiqi
 -   Matsuzawa, Anna
 -   Xu, Fengshi
 -   Hayes, Ryan
 -   Ristino, A.J.
 
+<img src="public/miis-logo-rev.svg" width="30%">    
 Middlebury College
 
 Middlebury Institute of International Studies at Monterey
 
-460 Pierce Street
-
-Monterey, California 93940
+460 Pierce Street, Monterey, California 93940
 
 ## License
 
