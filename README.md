@@ -42,7 +42,9 @@ Brewed in the Mixed-Methods Evaluation, Training, and Analysis (META) Lab
 -----------------------------------------(#^.^#)-----------------------------------------
 
 Lab Director: Phil Murphy, Ph.D.
+
 Lab GRA/Managers: Anvar Nizamov, Joey Hebl, Jr.
+
 Lab Members:
 -   Valcin, Vieux → Lead
 -   Chen, Qiqi
@@ -52,8 +54,11 @@ Lab Members:
 -   Ristino, A.J.
 
 Middlebury College
+
 Middlebury Institute of International Studies at Monterey
+
 460 Pierce Street
+
 Monterey, California 93940
 
 ## License
