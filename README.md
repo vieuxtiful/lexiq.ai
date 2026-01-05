@@ -28,7 +28,7 @@ This project is built using modern web technologies to ensure performance and sc
 
 ## Accolades
 
-<img src="public/locworld-logo.svg" width="15%" /> <img src="public/process-innovation-challenge-logo.svg" width="12%" />
+<img src="public/locworld-logo.svg" width="15%" /> <img src="public/process-innovation-challenge-logo.svg" width="12%" hspace="15" />
 
 ### Stage Pitch and Booth Presentation (October 15, 2025)
 
